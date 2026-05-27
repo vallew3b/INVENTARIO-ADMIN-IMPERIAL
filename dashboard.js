@@ -1549,3 +1549,69 @@ function extraerVariantes(tbodyId) {
 const style = document.createElement('style');
 style.textContent = '.text-danger { color: #e53e3e; font-weight: bold; }';
 document.head.appendChild(style);
+
+// ==================================================
+// FUNCIONALIDAD RESPONSIVA PARA DISPOSITIVOS MÓVILES
+// ==================================================
+window.addEventListener('DOMContentLoaded', () => {
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    if (menuToggleBtn && sidebar) {
+        menuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.toggle('active');
+            }
+        });
+    }
+    
+    // Cerrar sidebar al hacer clic en el velo de fondo (overlay)
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => {
+            if (sidebar) sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        });
+    }
+    
+    // Función auxiliar para cerrar sidebar en dispositivos móviles
+    function checkAndCloseSidebar() {
+        if (sidebar && window.innerWidth <= 991) {
+            sidebar.classList.remove('active');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('active');
+            }
+        }
+    }
+    
+    // Cerrar sidebar al hacer clic en cualquier enlace del menú de la barra lateral
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            checkAndCloseSidebar();
+        });
+    });
+    
+    // Cerrar sidebar al hacer clic en los botones del pie de la barra lateral (como Cerrar Sesión)
+    const sidebarFooterBtns = document.querySelectorAll('.sidebar-footer button');
+    sidebarFooterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            checkAndCloseSidebar();
+        });
+    });
+    
+    // Cerrar sidebar al navegar mediante las tarjetas principales del panel (Dashboard Cards)
+    // Usamos event delegation en el área de contenido para captar los clics en .dashboard-card
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.addEventListener('click', (e) => {
+            const card = e.target.closest('.dashboard-card');
+            if (card) {
+                checkAndCloseSidebar();
+            }
+        });
+    }
+});
+

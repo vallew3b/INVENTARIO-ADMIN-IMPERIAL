@@ -242,6 +242,34 @@ body {
     font-weight: 600;
 }
 
+.menu-toggle-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #22c55e;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.menu-toggle-btn:hover {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.menu-toggle-btn:focus {
+    outline: none;
+}
+
+.sidebar-overlay {
+    display: none;
+}
+
 .user-info {
     font-weight: 600;
     color: #22c55e;
@@ -1177,4 +1205,259 @@ body {
 .toast.hiding {
     animation: slideOut 0.3s ease-out forwards;
 }
+
+/* ==========================================
+   RESPONSIVE DESIGN (MOBILE & TABLET STYLES)
+   ========================================== */
+@media (max-width: 991px) {
+    .menu-toggle-btn {
+        display: flex; /* Show hamburger button on mobile screens */
+    }
+    
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 9999;
+        border-right: 3px solid #22c55e;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Overlay background when sidebar is active */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(3px);
+        z-index: 9998;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    .top-bar {
+        padding: 15px 20px;
+        border-bottom: 2px solid #22c55e;
+    }
+    
+    .top-bar h1 {
+        font-size: 20px;
+    }
+    
+    .content-area {
+        padding: 20px 15px;
+    }
+    
+    /* Stats Grid on Mobile */
+    .stats-grid-modern {
+        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card-modern {
+        padding: 16px;
+        gap: 12px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .stat-icon-modern {
+        font-size: 28px;
+    }
+    
+    .stat-info-modern h3 {
+        font-size: 20px;
+        margin-bottom: 2px;
+    }
+    
+    .stat-info-modern p {
+        font-size: 11px;
+    }
+    
+    /* Categories Tabs scrollbar instead of wrapping tall */
+    .categorias-tabs {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        padding: 10px !important;
+        gap: 8px !important;
+        -webkit-overflow-scrolling: touch;
+        border-bottom: 2px solid #22c55e !important;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+    
+    .tab-btn {
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+        flex: 0 0 auto !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .tab-btn-total {
+        margin-left: 0 !important;
+    }
+    
+    /* Punto de venta mobile */
+    .punto-venta-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .punto-venta-right {
+        position: static;
+        height: auto;
+    }
+    
+    .carrito-container {
+        height: auto;
+        min-height: 300px;
+        padding: 15px;
+    }
+    
+    /* Tables scrolling to prevent breaking layout */
+    .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .data-table th, 
+    .data-table td {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+    
+    .data-table img {
+        max-width: 60px !important;
+        max-height: 60px !important;
+    }
+    
+    /* Form grids stacking */
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .form-container {
+        padding: 20px;
+    }
+    
+    /* Dashboard main cards */
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .dashboard-card {
+        padding: 24px 16px;
+    }
+    
+    /* Modal responsive sizes */
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-content form {
+        padding: 15px;
+    }
+    
+    /* Responsive details */
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .inventario-total-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .stat-card-total {
+        padding: 12px;
+        gap: 10px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .stat-icon-total {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .stat-info-total h3 {
+        font-size: 18px;
+    }
+    
+    .stat-info-total p {
+        font-size: 11px;
+    }
+    
+    .inventario-total-categorias h3 {
+        font-size: 16px;
+    }
+    
+    .ventas-dia-container {
+        padding: 15px;
+    }
+    
+    .ventas-dia-container h2 {
+        font-size: 18px;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .date-filter {
+        width: 100%;
+        justify-content: space-between;
+        gap: 5px;
+    }
+    
+    .date-filter input[type="date"] {
+        flex: 1;
+        font-size: 13px;
+        padding: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    .user-info {
+        font-size: 13px;
+    }
+    
+    .inventario-total-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
 
