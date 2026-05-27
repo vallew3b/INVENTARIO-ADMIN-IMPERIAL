@@ -51,8 +51,14 @@ try {
 // Cliente para el proceso principal (usa service key para operaciones administrativas)
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Cliente para el renderer (usa anon key)
-const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey);
+// Cliente para el renderer (usa anon key con cabecera de seguridad)
+const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    headers: {
+      'x-app-secret': 'UrbanStoreImperio2026SecretKey!'
+    }
+  }
+});
 
 module.exports = { supabase, supabaseAnon, supabaseUrl };
 

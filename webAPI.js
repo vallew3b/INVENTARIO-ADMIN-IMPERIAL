@@ -16,6 +16,7 @@
   // Configuración de Supabase (Credenciales públicas obtenidas de supabase.js)
   const supabaseUrl = 'https://pyuqebokjhtwyrojwgxd.supabase.co';
   const supabaseAnonKey = 'sb_publishable_IUyaOWBuDvTAURD92VCxQQ_AGQN1-pw';
+  const appSecretKey = 'UrbanStoreImperio2026SecretKey!';
 
   // Verificar que el SDK de Supabase esté cargado
   if (typeof window.supabase === 'undefined') {
@@ -23,8 +24,14 @@
     return;
   }
 
-  // Inicializar cliente de Supabase
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+  // Inicializar cliente de Supabase con cabecera de seguridad
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        'x-app-secret': appSecretKey
+      }
+    }
+  });
 
   // Función auxiliar para formatear productos tal como lo hace database.js
   function formatearProducto(producto) {

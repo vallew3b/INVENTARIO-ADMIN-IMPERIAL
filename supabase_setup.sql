@@ -44,23 +44,34 @@ CREATE TABLE IF NOT EXISTS ventas (
 -- INSERT INTO usuarios (usuario, password, nombre, rol)
 -- VALUES ('tu_usuario_admin', 'tu_contraseña_segura', 'Tu Nombre', 'admin');
 
--- 5. Habilitar Row Level Security (RLS) - Opcional pero recomendado
+-- 5. Habilitar Row Level Security (RLS)
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE productos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ventas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE producto_variantes ENABLE ROW LEVEL SECURITY;
 
--- 6. Crear políticas RLS (permite todas las operaciones con service role key)
--- Nota: Como estamos usando service role key en el backend, estas políticas
--- permiten todas las operaciones. Para mayor seguridad, puedes ajustarlas.
+-- 6. Crear políticas RLS (Permiten el acceso únicamente si se incluye la llave secreta en los headers)
+-- Esto protege la base de datos contra accesos directos no autorizados mediante la Anon Key pública.
 
-CREATE POLICY "Permitir todo en usuarios" ON usuarios
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Seguridad usuarios" ON usuarios
+    FOR ALL
+    USING (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!')
+    WITH CHECK (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!');
 
-CREATE POLICY "Permitir todo en productos" ON productos
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Seguridad productos" ON productos
+    FOR ALL
+    USING (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!')
+    WITH CHECK (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!');
 
-CREATE POLICY "Permitir todo en ventas" ON ventas
-    FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Seguridad ventas" ON ventas
+    FOR ALL
+    USING (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!')
+    WITH CHECK (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!');
+
+CREATE POLICY "Seguridad producto_variantes" ON producto_variantes
+    FOR ALL
+    USING (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!')
+    WITH CHECK (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!');
 
 -- 7. Crear bucket de Storage para imágenes (ejecutar en Storage de Supabase)
 -- Ve a Storage en el panel de Supabase y crea un bucket llamado "imagenes"
