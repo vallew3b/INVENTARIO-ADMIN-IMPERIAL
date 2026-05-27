@@ -109,10 +109,12 @@ window.addEventListener('DOMContentLoaded', () => {
         if (inventarioTabAccesorios && !document.querySelector('#inventario .categorias-tabs .tab-btn.active')) {
             inventarioTabAccesorios.classList.add('active');
         }
-        // Asegurar que la pestaña "TODAS" esté activa por defecto en ventas
-        const ventasTabTodas = document.querySelector('#ventas .categorias-tabs .tab-btn[data-categoria-venta="TODAS"]');
-        if (ventasTabTodas && !document.querySelector('#ventas .categorias-tabs .tab-btn.active')) {
-            ventasTabTodas.classList.add('active');
+        // Asegurar que la pestaña correspondiente esté activa por defecto en ventas (OTROS en móvil para mayor rapidez)
+        const isMobile = window.innerWidth <= 991;
+        const defaultVentasCat = isMobile ? 'OTROS' : 'TODAS';
+        const ventasTabDefault = document.querySelector(`#ventas .categorias-tabs .tab-btn[data-categoria-venta="${defaultVentasCat}"]`);
+        if (ventasTabDefault && !document.querySelector('#ventas .categorias-tabs .tab-btn.active')) {
+            ventasTabDefault.classList.add('active');
         }
     }, 100);
 });
@@ -200,9 +202,11 @@ function navigateToSection(section) {
         // Resetear pestañas de ventas a TODAS
         setTimeout(() => {
             inicializarPestanas();
+            const isMobile = window.innerWidth <= 991;
+            const defaultVentasCat = isMobile ? 'OTROS' : 'TODAS';
             document.querySelectorAll('#ventas .categorias-tabs .tab-btn[data-categoria-venta]').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.getAttribute('data-categoria-venta') === 'TODAS') {
+                if (btn.getAttribute('data-categoria-venta') === defaultVentasCat) {
                     btn.classList.add('active');
                 }
             });
