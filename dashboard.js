@@ -342,16 +342,17 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 let ventasChartInstance = null;
 let stockChartInstance = null;
 
+// Formateo elegante de números y monedas (Global)
+const formatCurrency = (val) => {
+    const num = parseFloat(val) || 0;
+    return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 // Cargar estadísticas y renderizar gráficos premium
 async function loadEstadisticas() {
     try {
         const stats = await window.electronAPI.getEstadisticas();
         
-        // Formateo elegante de números y monedas
-        const formatCurrency = (val) => {
-            const num = parseFloat(val) || 0;
-            return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        };
         
         const totalProductosEl = document.getElementById('statTotalProductos');
         const inventarioTotalEl = document.getElementById('statInventarioTotal');
