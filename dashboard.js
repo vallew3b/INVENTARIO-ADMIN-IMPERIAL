@@ -115,6 +115,31 @@ configurarPermisos();
 window.addEventListener('DOMContentLoaded', () => {
     showToast('Conexión exitosa', 'Conectado correctamente a Supabase', 'success');
     
+    // Cargar estado inicial del modo privado (Privacidad de dinero)
+    const privacyToggleBtn = document.getElementById('privacyToggleBtn');
+    const privacyIcon = document.getElementById('privacyIcon');
+    const isPrivacyActive = localStorage.getItem('privacyMode') === 'true';
+    
+    if (isPrivacyActive) {
+        document.body.classList.add('privacy-mode');
+        if (privacyIcon) privacyIcon.textContent = '🙈';
+    }
+    
+    if (privacyToggleBtn) {
+        privacyToggleBtn.addEventListener('click', () => {
+            const active = document.body.classList.toggle('privacy-mode');
+            localStorage.setItem('privacyMode', active ? 'true' : 'false');
+            if (privacyIcon) {
+                privacyIcon.textContent = active ? '🙈' : '👁️';
+            }
+            showToast(
+                active ? 'Modo Privado Activo' : 'Modo Privado Inactivo',
+                active ? 'Los valores financieros se han ocultado.' : 'Los valores financieros son ahora visibles.',
+                'info'
+            );
+        });
+    }
+    
     // Cargar estadísticas y gráficos en el inicio inmediatamente
     loadEstadisticas();
     

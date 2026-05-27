@@ -1344,3 +1344,52 @@ canvas {
     font-size: 12px;
     color: var(--text-muted);
 }
+
+/* --------------------------------------------------------------------------
+   14. MODO PRIVADO (PRIVACY DE BLURRING)
+   -------------------------------------------------------------------------- */
+.privacy-toggle-container {
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.8;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-slate-gray);
+    transition: all 0.2s ease;
+}
+
+.privacy-toggle-container:hover {
+    opacity: 1;
+    background: var(--border-gray);
+    transform: scale(1.05);
+}
+
+/* Modo Privado activo: difumina los valores monetarios por defecto */
+.privacy-mode .stat-card-modern:nth-child(2) .stat-card-value,
+.privacy-mode .stat-card-modern:nth-child(3) .stat-card-value,
+.privacy-mode .stat-card-modern:nth-child(4) .stat-card-value,
+.privacy-mode .data-table td strong,
+.privacy-mode .data-table td:nth-child(5), /* Precio Inventario */
+.privacy-mode .data-table td:nth-child(6), /* Precio Venta / Total */
+.privacy-mode .line-chart-card .chart-canvas-wrapper {
+    filter: blur(6px);
+    user-select: none;
+    pointer-events: none;
+    transition: filter 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Permitir que el admin pase el cursor sobre un elemento específico para revelarlo temporalmente */
+.privacy-mode .stat-card-modern:nth-child(2):hover .stat-card-value,
+.privacy-mode .stat-card-modern:nth-child(3):hover .stat-card-value,
+.privacy-mode .stat-card-modern:nth-child(4):hover .stat-card-value,
+.privacy-mode .data-table tr:hover td strong,
+.privacy-mode .data-table tr:hover td:nth-child(5),
+.privacy-mode .data-table tr:hover td:nth-child(6),
+.privacy-mode .line-chart-card:hover .chart-canvas-wrapper {
+    filter: blur(0);
+    pointer-events: auto;
+}
