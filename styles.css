@@ -16,11 +16,11 @@
     --bg-slate-gray: #f1f5f9;
     --bg-white: #ffffff;
     
-    --dark-obsidian: #090d16;
-    --dark-charcoal: #0f172a;
-    --dark-card-hover: #1e293b;
+    --dark-obsidian: #1e2530;   /* Gris Espacial Mate (Premium Space-Grey) */
+    --dark-charcoal: #2a3240;   /* Gris Titanio Medio (Titanium Accent) */
+    --dark-card-hover: #3b4454; /* Gris Slate Activo (Hover Slate Highlight) */
     
-    --text-primary: #0f172a;
+    --text-primary: #1e293b;
     --text-muted: #64748b;
     --text-light: #f8fafc;
     
@@ -36,7 +36,7 @@
 
     /* Borders & Shadows */
     --border-gray: #e2e8f0;
-    --border-dark: #334155;
+    --border-dark: #3d4756;    /* Borde Gris Titanio Fino */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
