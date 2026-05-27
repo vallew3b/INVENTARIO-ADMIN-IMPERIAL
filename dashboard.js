@@ -115,6 +115,35 @@ configurarPermisos();
 window.addEventListener('DOMContentLoaded', () => {
     showToast('Conexión exitosa', 'Conectado correctamente a Supabase', 'success');
     
+    // Toggle para menú móvil (Sidebar)
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    function toggleSidebar() {
+        if (sidebar) sidebar.classList.toggle('active');
+        if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
+    }
+    
+    if (menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+
+    // Cerrar sidebar al hacer clic en un enlace de menú en móviles
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 900) {
+                if (sidebar) sidebar.classList.remove('active');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+            }
+        });
+    });
+    
     // Cargar estado inicial del modo privado (Privacidad de dinero)
     const privacyToggleBtn = document.getElementById('privacyToggleBtn');
     const privacyIcon = document.getElementById('privacyIcon');

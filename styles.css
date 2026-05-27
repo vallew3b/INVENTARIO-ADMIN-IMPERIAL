@@ -1533,3 +1533,157 @@ canvas {
     opacity: 1;
 }
 
+/* ==========================================================================
+   16. RESPONSIVIDAD MÓVIL (MOBILE RESPONSIVENESS SYSTEM)
+   ========================================================================== */
+@media (max-width: 900px) {
+    /* 1. Barra Lateral (Sidebar) & Backdrop */
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        height: 100vh;
+        z-index: 2200; /* Superpone a todo */
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+    }
+    
+    .sidebar.active {
+        left: 0;
+        box-shadow: 10px 0 40px rgba(0, 0, 0, 0.25);
+    }
+    
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 21, 32, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 2100;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    /* Revelar el botón Hamburguesa en móvil */
+    .menu-toggle-btn {
+        display: block;
+    }
+    
+    /* 2. Cabecera (Top Bar) */
+    .top-bar {
+        padding: 16px 20px;
+    }
+    
+    /* Ocultar barra de búsqueda de la cabecera en móvil para ganar espacio */
+    .search-bar-modern {
+        display: none;
+    }
+    
+    /* 3. Área de Contenido Principal */
+    .content-area {
+        padding: 20px 16px;
+    }
+    
+    /* 4. Métricas / Executive Cards */
+    .stats-grid-modern {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    
+    /* 5. Contenedor de Gráficos (Dashboard) */
+    .charts-dashboard-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    
+    /* 6. Punto de Venta (POS) */
+    .punto-venta-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .punto-venta-right {
+        position: static;
+        height: auto;
+    }
+    
+    .carrito-container {
+        height: auto;
+        min-height: 350px;
+    }
+    
+    /* 7. Tablas de Inventario Responsivas */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table th, 
+    .data-table td {
+        padding: 12px 14px;
+        font-size: 13px;
+        white-space: nowrap; /* Evita roturas de filas largas en móvil */
+    }
+    
+    /* 8. Formularios */
+    .form-container {
+        padding: 20px 16px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    /* Historial Ventas Header */
+    .ventas-dia-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .date-filter-modern {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Ajustes extra para teléfonos compactos */
+    .top-bar-breadcrumbs h1 {
+        font-size: 20px;
+    }
+    
+    .stat-card-value {
+        font-size: 24px;
+    }
+    
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+    
+    .producto-imagen {
+        height: 100px;
+    }
+    
+    .producto-nombre {
+        font-size: 12px;
+        height: 34px;
+    }
+    
+    .producto-precio {
+        font-size: 16px;
+    }
+}
+
