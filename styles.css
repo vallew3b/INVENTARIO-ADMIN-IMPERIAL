@@ -1396,18 +1396,25 @@ body {
     }
     
     /* Tables scrolling to prevent breaking layout */
-    .table-container {
+    .table-container,
+    #inventario .table-container {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         border-radius: 8px;
         margin-bottom: 15px;
         width: 100%;
+        padding: 10px !important;
+    }
+    
+    .data-table {
+        min-width: 780px !important; /* Force min-width so all 8 columns render beautifully without squishing */
     }
     
     .data-table th, 
     .data-table td {
         padding: 10px 8px;
         font-size: 12px;
+        white-space: nowrap; /* Prevent headers and text from wrapping ugly */
     }
     
     .data-table img {
