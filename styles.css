@@ -1240,36 +1240,74 @@ canvas {
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
     max-width: 800px;
+    width: 100%;
 }
 
 .form-container h2 {
     font-size: 22px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     color: var(--text-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+
+/* Filas del Formulario (Alineación lado a lado) */
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 18px;
+    width: 100%;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0; /* Evita márgenes duplicados */
+}
+
+/* Grupo de Formulario (Estructura en Columna) */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+    width: 100%;
 }
 
 .form-group label {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    display: block;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-    padding: 10px 14px;
+    width: 100%; /* Ocupar todo el ancho asignado */
+    padding: 11px 14px;
     border: 1px solid var(--border-gray);
     border-radius: 8px;
     font-size: 14px;
-    transition: all 0.2s ease;
+    font-family: var(--font-body);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     border-color: var(--primary-emerald);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    background: var(--bg-white);
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 18px;
+    }
 }
 
 /* Modal Styling */
