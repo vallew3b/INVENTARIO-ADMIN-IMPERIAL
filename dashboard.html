@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema de Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=1.6">
+    <!-- Chart.js CDN para gráficos interactivos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Contenedor de notificaciones -->
@@ -15,98 +20,189 @@
         <div id="sidebarOverlay" class="sidebar-overlay"></div>
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2>Inventario</h2>
+                <div class="brand-badge-sidebar">ADMIN</div>
+                <h2 class="brand-title-sidebar">URBAN STORE</h2>
+                <p class="brand-subtitle-sidebar">IMPERIAL CONSOLE</p>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" data-section="inicio" class="active">Inicio</a></li>
-                <li><a href="#" data-section="inventario">Inventario</a></li>
-                <li><a href="#" data-section="estadisticas">Estadísticas</a></li>
-                <li><a href="#" data-section="agregar">Agregar Producto</a></li>
-                <li><a href="#" data-section="ventas">Ventas</a></li>
-            </ul>
+            
+            <div class="sidebar-menu-wrapper">
+                <div class="menu-group">
+                    <span class="menu-group-title">INICIO</span>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-section="inicio" class="active">
+                                <span class="menu-icon">📊</span>
+                                <span class="menu-text">Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="menu-group">
+                    <span class="menu-group-title">OPERACIONES</span>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-section="ventas">
+                                <span class="menu-icon">💳</span>
+                                <span class="menu-text">Punto de Venta</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="inventario">
+                                <span class="menu-icon">📦</span>
+                                <span class="menu-text">Inventario</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-section="agregar">
+                                <span class="menu-icon">➕</span>
+                                <span class="menu-text">Agregar Producto</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
             <div class="sidebar-footer">
-                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+                <div class="user-profile-badge-container">
+                    <div class="user-avatar-circle" id="userInitialSidebar">U</div>
+                    <div class="user-profile-info">
+                        <span class="user-profile-name" id="userNameSidebar">Usuario</span>
+                        <span class="user-profile-role" id="userRoleSidebar">Administrador</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn btn-secondary btn-logout-modern">
+                    <span>Cerrar Sesión</span>
+                    <span class="logout-icon">🚪</span>
+                </button>
             </div>
         </nav>
         
         <main class="main-content">
             <header class="top-bar">
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="top-bar-left">
                     <button id="menuToggleBtn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
-                    <h1 id="sectionTitle">Inicio</h1>
+                    <div class="top-bar-breadcrumbs">
+                        <span class="breadcrumb-mini">TABLERO EJECUTIVO</span>
+                        <h1 id="sectionTitle">Dashboard</h1>
+                    </div>
                 </div>
-                <div class="user-info">
-                    <span id="userName">Usuario</span>
+                <div class="top-bar-right">
+                    <div class="search-bar-modern">
+                        <span class="search-icon-modern">🔍</span>
+                        <input type="text" id="buscarGlobal" placeholder="Buscar en el sistema..." class="search-input-modern">
+                    </div>
+                    <div class="top-bar-actions">
+                        <div class="notification-badge-container">
+                            <span class="notification-icon">🔔</span>
+                            <span class="notification-dot"></span>
+                        </div>
+                        <div class="user-avatar-badge" id="userAvatarHeader">
+                            <span>US</span>
+                        </div>
+                    </div>
+                    <span id="userName" style="display: none;">Usuario</span>
                 </div>
             </header>
             
             <div class="content-area">
-                <!-- Sección de Inicio -->
+                <!-- Sección de Inicio (Dashboard General) -->
                 <section id="inicio" class="content-section active">
-                    <div class="dashboard-cards">
-                        <div class="dashboard-card" data-section="inventario">
-                            <div class="card-icon">📋</div>
-                            <h3>Inventario</h3>
-                            <p>Gestiona y visualiza todos tus productos</p>
-                        </div>
-                        <div class="dashboard-card" data-section="estadisticas">
-                            <div class="card-icon">📊</div>
-                            <h3>Estadísticas</h3>
-                            <p>Consulta métricas y reportes del sistema</p>
-                        </div>
-                        <div class="dashboard-card" data-section="agregar">
-                            <div class="card-icon">➕</div>
-                            <h3>Agregar Producto</h3>
-                            <p>Registra nuevos productos en el inventario</p>
-                        </div>
-                        <div class="dashboard-card" data-section="ventas">
-                            <div class="card-icon">💰</div>
-                            <h3>Ventas</h3>
-                            <p>Registra y consulta las ventas realizadas</p>
-                        </div>
-                    </div>
-                </section>
-                
-                <!-- Sección de Estadísticas -->
-                <section id="estadisticas" class="content-section">
+                    <!-- Grid de Tarjetas Métricas -->
                     <div class="stats-grid-modern">
+                        <!-- Tarjeta 1: Total Productos -->
                         <div class="stat-card-modern">
-                            <div class="stat-icon-modern">📦</div>
-                            <div class="stat-info-modern">
-                                <h3 id="statTotalProductos">0</h3>
-                                <p>Total Productos</p>
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">PRODUCTOS EN SISTEMA</span>
+                                <div class="stat-card-icon-wrapper bg-soft-green">📦</div>
+                            </div>
+                            <h3 id="statTotalProductos" class="stat-card-value">0</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-indicator text-success">↑ Activo</span>
+                                <span class="trend-context">en base de datos</span>
                             </div>
                         </div>
+                        
+                        <!-- Tarjeta 2: Valor Total de Inventario -->
                         <div class="stat-card-modern">
-                            <div class="stat-icon-modern">📊</div>
-                            <div class="stat-info-modern">
-                                <h3 id="statInventarioTotal">$0.00</h3>
-                                <p>Inventario Total</p>
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">VALOR DE INVENTARIO</span>
+                                <div class="stat-card-icon-wrapper bg-soft-blue">📊</div>
+                            </div>
+                            <h3 id="statInventarioTotal" class="stat-card-value">$0.00</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-indicator text-success">↑ Activo</span>
+                                <span class="trend-context">valor de costo</span>
                             </div>
                         </div>
+                        
+                        <!-- Tarjeta 3: Ganancias Totales -->
                         <div class="stat-card-modern">
-                            <div class="stat-icon-modern">💰</div>
-                            <div class="stat-info-modern">
-                                <h3 id="statGanancias">$0.00</h3>
-                                <p>Ganancias Totales</p>
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">GANANCIAS ACUMULADAS</span>
+                                <div class="stat-card-icon-wrapper bg-soft-emerald">💰</div>
+                            </div>
+                            <h3 id="statGanancias" class="stat-card-value">$0.00</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-indicator text-success">↑ 12.4%</span>
+                                <span class="trend-context">vs. mes anterior</span>
                             </div>
                         </div>
+                        
+                        <!-- Tarjeta 4: Ventas del Día -->
                         <div class="stat-card-modern">
-                            <div class="stat-icon-modern">🛒</div>
-                            <div class="stat-info-modern">
-                                <h3 id="statVentasHoy">$0.00</h3>
-                                <p>Ventas del Día</p>
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">VENTAS DEL DÍA</span>
+                                <div class="stat-card-icon-wrapper bg-soft-amber">🛒</div>
+                            </div>
+                            <h3 id="statVentasHoy" class="stat-card-value">$0.00</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-indicator text-success">↑ 3.1%</span>
+                                <span class="trend-context">vs. ayer</span>
                             </div>
                         </div>
                     </div>
                     
+                    <!-- Contenedor de Gráficos de Alta Gama -->
+                    <div class="charts-dashboard-container">
+                        <!-- Gráfico 1: Ventas de la Semana -->
+                        <div class="chart-card-modern line-chart-card">
+                            <div class="chart-card-header">
+                                <div>
+                                    <span class="chart-card-subtitle">HISTORIAL EJECUTIVO</span>
+                                    <h3 class="chart-card-title">Ventas de la semana</h3>
+                                </div>
+                            </div>
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="ventasSemanaChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Gráfico 2: Distribución por Categorías -->
+                        <div class="chart-card-modern donut-chart-card">
+                            <div class="chart-card-header">
+                                <div>
+                                    <span class="chart-card-subtitle">RESUMEN DE STOCK</span>
+                                    <h3 class="chart-card-title">Distribución por categoría</h3>
+                                </div>
+                            </div>
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="categoriasStockChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Historial de Ventas Integrado en Inicio -->
                     <div class="ventas-dia-container">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
-                            <h2>📋 Historial de Ventas</h2>
-                            <div class="date-filter" style="display: flex; gap: 10px; align-items: center;">
+                        <div class="ventas-dia-header">
+                            <div>
+                                <span class="section-subtitle">HISTORIAL DE OPERACIONES</span>
+                                <h2>📋 Historial de Ventas</h2>
+                            </div>
+                            <div class="date-filter-modern">
                                 <label for="fechaHistorial">Consultar Fecha:</label>
-                                <input type="date" id="fechaHistorial" class="search-input" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
-                                <button id="btnBuscarHistorial" class="btn btn-primary btn-small">🔍 Buscar</button>
+                                <input type="date" id="fechaHistorial" class="date-input-modern">
+                                <button id="btnBuscarHistorial" class="btn btn-primary btn-search-modern">🔍 Buscar</button>
                             </div>
                         </div>
                         <div class="table-container">

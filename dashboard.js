@@ -4,8 +4,36 @@ if (!user) {
     window.location.href = 'index.html';
 }
 
-// Mostrar nombre de usuario
-document.getElementById('userName').textContent = user.nombre;
+// Mostrar nombre de usuario y detalles dinámicos en cabecera y sidebar
+if (user) {
+    const userNameEl = document.getElementById('userName');
+    if (userNameEl) userNameEl.textContent = user.nombre;
+    
+    const userNameSidebar = document.getElementById('userNameSidebar');
+    if (userNameSidebar) userNameSidebar.textContent = user.nombre;
+    
+    const userRoleSidebar = document.getElementById('userRoleSidebar');
+    if (userRoleSidebar) {
+        userRoleSidebar.textContent = user.rol === 'vendedor' ? 'Vendedor' : 'Administrador';
+    }
+    
+    // Obtener iniciales (ej: "Juan Pérez" -> "JP", "Admin" -> "AD")
+    const parts = user.nombre.split(' ');
+    let initials = 'US';
+    if (parts.length >= 2) {
+        initials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1 && parts[0].length > 0) {
+        initials = parts[0].substring(0, 2).toUpperCase();
+    }
+    
+    const userInitialSidebar = document.getElementById('userInitialSidebar');
+    if (userInitialSidebar) userInitialSidebar.textContent = initials;
+    
+    const userAvatarHeader = document.getElementById('userAvatarHeader');
+    if (userAvatarHeader) {
+        userAvatarHeader.innerHTML = `<span>${initials}</span>`;
+    }
+}
 
 // Ocultar secciones según el rol del usuario
 function configurarPermisos() {
@@ -87,6 +115,9 @@ configurarPermisos();
 window.addEventListener('DOMContentLoaded', () => {
     showToast('Conexión exitosa', 'Conectado correctamente a Supabase', 'success');
     
+    // Cargar estadísticas y gráficos en el inicio inmediatamente
+    loadEstadisticas();
+    
     // Configurar listener para el historial de ventas
     const btnBuscarHistorial = document.getElementById('btnBuscarHistorial');
     if (btnBuscarHistorial) {
@@ -157,9 +188,12 @@ function showToast(title, message, type = 'success') {
 
 // Navegación entre secciones
 function navigateToSection(section) {
+    // Si intentan navegar a estadísticas (por compatibilidad heredada), redirigir a inicio (Dashboard)
+    const mappedSection = section === 'estadisticas' ? 'inicio' : section;
+    
     // Actualizar menú activo
     document.querySelectorAll('.sidebar-menu a').forEach(l => {
-        if (l.getAttribute('data-section') === section) {
+        if (l.getAttribute('data-section') === mappedSection) {
             l.classList.add('active');
         } else {
             l.classList.remove('active');
@@ -168,25 +202,24 @@ function navigateToSection(section) {
     
     // Mostrar sección correspondiente
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    const targetSection = document.getElementById(section);
+    const targetSection = document.getElementById(mappedSection);
     if (targetSection) {
         targetSection.classList.add('active');
     }
     
     // Actualizar título
     const titles = {
-        'inicio': 'Inicio',
-        'estadisticas': 'Estadísticas',
+        'inicio': 'Dashboard',
         'inventario': 'Inventario',
-        'ventas': 'Ventas',
+        'ventas': 'Punto de Venta',
         'agregar': 'Agregar Producto'
     };
-    document.getElementById('sectionTitle').textContent = titles[section] || 'Inicio';
+    document.getElementById('sectionTitle').textContent = titles[mappedSection] || 'Dashboard';
     
     // Cargar datos según la sección
-    if (section === 'estadisticas') {
+    if (mappedSection === 'inicio') {
         loadEstadisticas();
-    } else if (section === 'inventario') {
+    } else if (mappedSection === 'inventario') {
         // Asegurar que las pestañas estén inicializadas y visibles
         setTimeout(() => {
             inicializarPestanas();
@@ -198,7 +231,7 @@ function navigateToSection(section) {
             }
             loadInventario();
         }, 100);
-    } else if (section === 'ventas') {
+    } else if (mappedSection === 'ventas') {
         // Resetear pestañas de ventas a TODAS
         setTimeout(() => {
             inicializarPestanas();
@@ -237,20 +270,232 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     window.location.href = 'index.html';
 });
 
-// Cargar estadísticas
+// Variables globales para instancias de gráficos (Chart.js)
+let ventasChartInstance = null;
+let stockChartInstance = null;
+
+// Cargar estadísticas y renderizar gráficos premium
 async function loadEstadisticas() {
     try {
         const stats = await window.electronAPI.getEstadisticas();
-        document.getElementById('statTotalProductos').textContent = stats.totalProductos;
-        document.getElementById('statInventarioTotal').textContent = '$' + stats.inventarioTotal;
-        document.getElementById('statGanancias').textContent = '$' + stats.gananciasTotales;
-        document.getElementById('statVentasHoy').textContent = '$' + stats.ventasHoy;
+        
+        // Formateo elegante de números y monedas
+        const formatCurrency = (val) => {
+            const num = parseFloat(val) || 0;
+            return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+        
+        const totalProductosEl = document.getElementById('statTotalProductos');
+        const inventarioTotalEl = document.getElementById('statInventarioTotal');
+        const gananciasEl = document.getElementById('statGanancias');
+        const ventasHoyEl = document.getElementById('statVentasHoy');
+        
+        if (totalProductosEl) totalProductosEl.textContent = (parseInt(stats.totalProductos) || 0).toLocaleString('es-MX');
+        if (inventarioTotalEl) inventarioTotalEl.textContent = formatCurrency(stats.inventarioTotal);
+        if (gananciasEl) gananciasEl.textContent = formatCurrency(stats.gananciasTotales);
+        if (ventasHoyEl) ventasHoyEl.textContent = formatCurrency(stats.ventasHoy);
         
         // Cargar ventas del día
         await loadVentasDia();
+        
+        // ─── LÓGICA DE GRÁFICOS INTERACTIVOS (CHART.JS) ───
+        
+        // 1. Gráfico de Dona: Distribución de Stock por Categoría
+        const productos = await window.electronAPI.getProductos();
+        const catData = {};
+        
+        productos.forEach(p => {
+            const cat = (p.categoria || 'OTROS').toUpperCase();
+            catData[cat] = (catData[cat] || 0) + (parseInt(p.stock) || 0);
+        });
+        
+        // Ordenar categorías y tomar las 5 principales, sumar el resto en "OTROS"
+        const sortedCats = Object.entries(catData).sort((a, b) => b[1] - a[1]);
+        const topCats = sortedCats.slice(0, 5);
+        const otherSum = sortedCats.slice(5).reduce((sum, item) => sum + item[1], 0);
+        
+        const catLabels = topCats.map(item => item[0]);
+        const catValues = topCats.map(item => item[1]);
+        if (otherSum > 0) {
+            catLabels.push('OTROS');
+            catValues.push(otherSum);
+        }
+        
+        // 2. Gráfico de Línea: Ventas de los últimos 7 días
+        const hoy = new Date();
+        const dias = [];
+        const ventasLabels = [];
+        const ventasValues = [];
+        
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(hoy.getDate() - i);
+            const fechaStr = d.toISOString().split('T')[0];
+            dias.push(fechaStr);
+            
+            // E.g. "Lun 26"
+            const diaSem = d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' });
+            ventasLabels.push(diaSem.charAt(0).toUpperCase() + diaSem.slice(1));
+        }
+        
+        // Obtener ventas reales agregadas en el rango de 7 días
+        const ventasRecientes = await window.electronAPI.getVentas(dias[0], dias[6]);
+        const ventasPorFecha = {};
+        ventasRecientes.forEach(v => {
+            const fStr = v.fecha.split('T')[0];
+            ventasPorFecha[fStr] = (ventasPorFecha[fStr] || 0) + (parseFloat(v.total) || 0);
+        });
+        
+        dias.forEach(fStr => {
+            ventasValues.push(ventasPorFecha[fStr] || 0);
+        });
+        
+        // Dibujar gráficos interactivamente
+        inicializarGraficos(ventasLabels, ventasValues, catLabels, catValues);
+        
     } catch (error) {
-        console.error('Error cargando estadísticas:', error);
-        showToast('Error', 'No se pudieron cargar las estadísticas', 'error');
+        console.error('Error cargando estadísticas y gráficos:', error);
+        showToast('Error', 'No se pudieron cargar los datos del dashboard', 'error');
+    }
+}
+
+// Inicializar o refrescar gráficos de Chart.js
+function inicializarGraficos(ventasLabels, ventasData, catLabels, catData) {
+    if (ventasChartInstance) {
+        ventasChartInstance.destroy();
+    }
+    if (stockChartInstance) {
+        stockChartInstance.destroy();
+    }
+    
+    // 1. Gráfico de Líneas de Ventas
+    const ctxVentas = document.getElementById('ventasSemanaChart');
+    if (ctxVentas) {
+        const gradient = ctxVentas.getContext('2d').createLinearGradient(0, 0, 0, 220);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+        
+        ventasChartInstance = new Chart(ctxVentas, {
+            type: 'line',
+            data: {
+                labels: ventasLabels,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: ventasData,
+                    borderColor: '#10b981',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.38,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        padding: 12,
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
+                        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return ` Ventas: $${context.raw.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.06)'
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+                            callback: function(value) {
+                                return '$' + value.toLocaleString('es-MX');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // 2. Gráfico de Dona de Categorías
+    const ctxStock = document.getElementById('categoriasStockChart');
+    if (ctxStock) {
+        stockChartInstance = new Chart(ctxStock, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: [
+                        '#10b981', // Emerald Primary
+                        '#0f172a', // Obsidian Charcoal
+                        '#3b82f6', // Ocean Blue
+                        '#f59e0b', // Amber/Gold
+                        '#94a3b8', // Cool Slate
+                        '#a7f3d0'  // Soft Mint
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 8,
+                            boxHeight: 8,
+                            usePointStyle: true,
+                            padding: 14,
+                            color: '#64748b',
+                            font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' }
+                        }
+                    },
+                    tooltip: {
+                        padding: 12,
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
+                        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                                return ` Stock: ${context.raw.toLocaleString()} u. (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '72%'
+            }
+        });
     }
 }
 
@@ -400,7 +645,7 @@ function filtrarInventarioPorCategoria(categoria) {
     tbody.innerHTML = productosFiltrados.map(p => {
         let imagenCell = '-';
         if (p.imagenPath) {
-            imagenCell = `<img src="${p.imagenPath}" alt="${p.nombre}" style="max-width: 80px; max-height: 80px; border-radius: 4px; object-fit: cover;">`;
+            imagenCell = `<img src="${p.imagenPath}" alt="${p.nombre}" style="max-width: 50px; max-height: 50px; border-radius: 8px; object-fit: cover;">`;
         }
         const precioInventario = p.precioInventario || p.precio_inventario || 0;
         const precioVenta = p.precioVenta || p.precio || 0;
@@ -411,15 +656,26 @@ function filtrarInventarioPorCategoria(categoria) {
         
         const precioInventarioCell = esAdmin ? `<td>$${parseFloat(precioInventario).toFixed(2)}</td>` : '';
         
+        // Stock Badges
+        let stockBadge = '';
+        const stockNum = parseInt(p.stock) || 0;
+        if (stockNum === 0) {
+            stockBadge = `<span class="stock-badge stock-out">Agotado</span>`;
+        } else if (stockNum < 10) {
+            stockBadge = `<span class="stock-badge stock-low">Bajo Stock (${stockNum})</span>`;
+        } else {
+            stockBadge = `<span class="stock-badge stock-in">En Stock (${stockNum})</span>`;
+        }
+        
         return `
         <tr>
             <td>${imagenCell}</td>
             <td>${p.codigo}</td>
-            <td>${p.nombre}</td>
-            <td>${p.categoria || '-'}</td>
+            <td><strong>${p.nombre}</strong></td>
+            <td><span class="stock-badge" style="background:#f1f5f9; color:#475569;">${p.categoria || '-'}</span></td>
             ${precioInventarioCell}
-            <td>$${parseFloat(precioVenta).toFixed(2)}</td>
-            <td><span class="${p.stock < 10 ? 'text-danger' : ''}">${p.stock}</span></td>
+            <td><strong style="color:var(--primary-emerald);">$${parseFloat(precioVenta).toFixed(2)}</strong></td>
+            <td>${stockBadge}</td>
             <td>${botonesAccion}</td>
         </tr>
     `;
