@@ -375,33 +375,67 @@ async function loadEstadisticas() {
             catValues.push(otherSum);
         }
         
-        // 2. Gráfico de Línea: Ventas de los últimos 7 días
-        const hoy = new Date();
-        const dias = [];
-        const ventasLabels = [];
-        const ventasValues = [];
+        // 2. Gráfico de Línea: Ventas Agregadas por Mes (Comenzando desde el inicio de los datos)
+        // Consultamos un rango amplio desde el año 2020 hasta el 2030 para capturar todo el historial
+        const todasLasVentas = await window.electronAPI.getVentas('2020-01-01', '2030-12-31');
+        const ventasPorMes = {};
         
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(hoy.getDate() - i);
-            const fechaStr = d.toISOString().split('T')[0];
-            dias.push(fechaStr);
-            
-            // E.g. "Lun 26"
-            const diaSem = d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' });
-            ventasLabels.push(diaSem.charAt(0).toUpperCase() + diaSem.slice(1));
-        }
-        
-        // Obtener ventas reales agregadas en el rango de 7 días
-        const ventasRecientes = await window.electronAPI.getVentas(dias[0], dias[6]);
-        const ventasPorFecha = {};
-        ventasRecientes.forEach(v => {
-            const fStr = v.fecha.split('T')[0];
-            ventasPorFecha[fStr] = (ventasPorFecha[fStr] || 0) + (parseFloat(v.total) || 0);
+        todasLasVentas.forEach(v => {
+            if (!v.fecha) return;
+            const datePart = v.fecha.split('T')[0]; // "YYYY-MM-DD"
+            const [year, month] = datePart.split('-');
+            const key = `${year}-${month}`; // "YYYY-MM"
+            ventasPorMes[key] = (ventasPorMes[key] || 0) + (parseFloat(v.total) || 0);
         });
         
-        dias.forEach(fStr => {
-            ventasValues.push(ventasPorFecha[fStr] || 0);
+        // Obtener las claves de meses ordenadas cronológicamente
+        const keysMeses = Object.keys(ventasPorMes).sort();
+        
+        let startYear, startMonth;
+        const hoy = new Date();
+        const endYear = hoy.getFullYear();
+        const endMonth = hoy.getMonth() + 1; // 1-indexed
+        
+        if (keysMeses.length > 0) {
+            const [firstYear, firstMonth] = keysMeses[0].split('-').map(Number);
+            startYear = firstYear;
+            startMonth = firstMonth;
+        } else {
+            // Por defecto si está vacío, mostrar últimos 6 meses
+            const seisMesesAtras = new Date();
+            seisMesesAtras.setMonth(hoy.getMonth() - 5);
+            startYear = seisMesesAtras.getFullYear();
+            startMonth = seisMesesAtras.getMonth() + 1;
+        }
+        
+        const ventasLabels = [];
+        const ventasValues = [];
+        const mesesKeys = [];
+        
+        let currYear = startYear;
+        let currMonth = startMonth;
+        
+        while (currYear < endYear || (currYear === endYear && currMonth <= endMonth)) {
+            const key = `${currYear}-${String(currMonth).padStart(2, '0')}`;
+            mesesKeys.push(key);
+            
+            // Generar etiqueta legible, ej: "May 26"
+            const tempDate = new Date(currYear, currMonth - 1, 1);
+            const rawLabel = tempDate.toLocaleDateString('es-MX', { month: 'short', year: '2-digit' });
+            const cleanLabel = rawLabel.replace('.', ''); // Eliminar el punto que a veces pone JS
+            const capitalized = cleanLabel.charAt(0).toUpperCase() + cleanLabel.slice(1);
+            ventasLabels.push(capitalized);
+            
+            currMonth++;
+            if (currMonth > 12) {
+                currMonth = 1;
+                currYear++;
+            }
+        }
+        
+        // Llenar los valores para la gráfica mensual
+        mesesKeys.forEach(key => {
+            ventasValues.push(ventasPorMes[key] || 0);
         });
         
         // Dibujar gráficos interactivamente
