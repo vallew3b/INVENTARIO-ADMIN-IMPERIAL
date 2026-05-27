@@ -722,21 +722,34 @@ canvas {
 /* --------------------------------------------------------------------------
    8. PESTAÑAS DE CATEGORIAS (TABS PILLS)
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   8. PESTAÑAS DE CATEGORIAS (TABS PILLS HORIZONTAL SLIDER)
+   -------------------------------------------------------------------------- */
 .categorias-tabs {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;  /* No más saltos de línea feos */
+    overflow-x: auto;   /* Permite scroll horizontal */
     gap: 8px;
-    margin-bottom: 24px;
-    padding: 6px;
+    margin-bottom: 28px;
+    padding: 8px 12px;
     background: var(--bg-slate-gray);
-    border-radius: 10px;
+    border-radius: 14px; /* Más redondeado y moderno */
     border: none;
+    
+    /* Soporte táctil y ocultar barra de desplazamiento tosca */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+/* Ocultar barra de desplazamiento en Chrome, Safari y Edge */
+.categorias-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tab-btn {
-    padding: 8px 16px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     background: transparent;
     color: var(--text-muted);
     font-size: 12px;
@@ -744,19 +757,18 @@ canvas {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: none;
+    white-space: nowrap; /* Evita que el texto de la categoría salte de línea */
 }
 
 .tab-btn:hover {
     color: var(--text-primary);
-    transform: none;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.4);
 }
 
 .tab-btn.active {
     background: var(--bg-white);
     color: var(--text-primary);
     box-shadow: var(--shadow-sm);
-    transform: none;
 }
 
 .tab-btn-total {
@@ -892,7 +904,7 @@ canvas {
 .producto-card {
     background: var(--bg-white);
     border: 1px solid var(--border-gray);
-    border-radius: 12px;
+    border-radius: 14px; /* Más redondeado y moderno */
     padding: 16px;
     box-shadow: var(--shadow-sm);
     cursor: pointer;
@@ -911,11 +923,17 @@ canvas {
 
 .producto-imagen {
     width: 100%;
-    height: 120px;
+    height: 130px; /* Un poco más alta para ropa y calzado */
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 12px;
     background: var(--bg-slate-gray);
+    transition: transform 0.3s ease; /* Transición para efecto zoom */
+}
+
+/* Efecto Zoom en la prenda al pasar el cursor sobre la tarjeta */
+.producto-card:hover .producto-imagen {
+    transform: scale(1.05);
 }
 
 .producto-nombre {
@@ -984,11 +1002,18 @@ canvas {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px;
+    padding: 14px 16px; /* Más espacioso e interno */
     background: var(--bg-slate-light);
     border: 1px solid var(--border-gray);
-    border-radius: 8px;
-    margin-bottom: 8px;
+    border-radius: 10px; /* Más redondeado y limpio */
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+
+.carrito-item:hover {
+    background: var(--bg-white);
+    border-color: var(--primary-emerald);
+    box-shadow: var(--shadow-sm);
 }
 
 .carrito-item-nombre {
