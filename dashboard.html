@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Inventario</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Contenedor de notificaciones -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Inventario</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" data-section="inicio" class="active">Inicio</a></li>
+                <li><a href="#" data-section="inventario">Inventario</a></li>
+                <li><a href="#" data-section="estadisticas">Estadísticas</a></li>
+                <li><a href="#" data-section="agregar">Agregar Producto</a></li>
+                <li><a href="#" data-section="ventas">Ventas</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 id="sectionTitle">Inicio</h1>
+                <div class="user-info">
+                    <span id="userName">Usuario</span>
+                </div>
+            </header>
+            
+            <div class="content-area">
+                <!-- Sección de Inicio -->
+                <section id="inicio" class="content-section active">
+                    <div class="dashboard-cards">
+                        <div class="dashboard-card" data-section="inventario">
+                            <div class="card-icon">📋</div>
+                            <h3>Inventario</h3>
+                            <p>Gestiona y visualiza todos tus productos</p>
+                        </div>
+                        <div class="dashboard-card" data-section="estadisticas">
+                            <div class="card-icon">📊</div>
+                            <h3>Estadísticas</h3>
+                            <p>Consulta métricas y reportes del sistema</p>
+                        </div>
+                        <div class="dashboard-card" data-section="agregar">
+                            <div class="card-icon">➕</div>
+                            <h3>Agregar Producto</h3>
+                            <p>Registra nuevos productos en el inventario</p>
+                        </div>
+                        <div class="dashboard-card" data-section="ventas">
+                            <div class="card-icon">💰</div>
+                            <h3>Ventas</h3>
+                            <p>Registra y consulta las ventas realizadas</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sección de Estadísticas -->
+                <section id="estadisticas" class="content-section">
+                    <div class="stats-grid-modern">
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern">📦</div>
+                            <div class="stat-info-modern">
+                                <h3 id="statTotalProductos">0</h3>
+                                <p>Total Productos</p>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern">📊</div>
+                            <div class="stat-info-modern">
+                                <h3 id="statInventarioTotal">$0.00</h3>
+                                <p>Inventario Total</p>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern">💰</div>
+                            <div class="stat-info-modern">
+                                <h3 id="statGanancias">$0.00</h3>
+                                <p>Ganancias Totales</p>
+                            </div>
+                        </div>
+                        <div class="stat-card-modern">
+                            <div class="stat-icon-modern">🛒</div>
+                            <div class="stat-info-modern">
+                                <h3 id="statVentasHoy">$0.00</h3>
+                                <p>Ventas del Día</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ventas-dia-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+                            <h2>📋 Historial de Ventas</h2>
+                            <div class="date-filter" style="display: flex; gap: 10px; align-items: center;">
+                                <label for="fechaHistorial">Consultar Fecha:</label>
+                                <input type="date" id="fechaHistorial" class="search-input" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                                <button id="btnBuscarHistorial" class="btn btn-primary btn-small">🔍 Buscar</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hora</th>
+                                        <th>Producto</th>
+                                        <th>Código</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ventasDiaTableBody">
+                                    <tr><td colspan="6" class="loading">Cargando ventas del día...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sección de Inventario -->
+                <section id="inventario" class="content-section">
+                    <div class="section-header">
+                        <h2>Lista de Productos</h2>
+                        <button id="refreshInventario" class="btn btn-primary">🔄 Actualizar</button>
+                    </div>
+                    <div class="categorias-tabs">
+                        <button class="tab-btn" data-categoria="TODAS">TODAS</button>
+                        <button class="tab-btn" data-categoria="SUDADERAS">SUDADERAS</button>
+                        <button class="tab-btn" data-categoria="CONJUNTOS">CONJUNTOS</button>
+                        <button class="tab-btn" data-categoria="PLAYERAS">PLAYERAS</button>
+                        <button class="tab-btn" data-categoria="CAMISETAS">CAMISETAS</button>
+                        <button class="tab-btn" data-categoria="CALCETAS">CALCETAS</button>
+                        <button class="tab-btn" data-categoria="PANS">PANS</button>
+                        <button class="tab-btn" data-categoria="PANTALONES">PANTALONES</button>
+                        <button class="tab-btn" data-categoria="PLAYERA MANGA LARGA">PLAYERA MANGA LARGA</button>
+                        <button class="tab-btn" data-categoria="POLO">POLO</button>
+                        <button class="tab-btn" data-categoria="CINTURÓN">CINTURÓN</button>
+                        <button class="tab-btn" data-categoria="RELOJ">RELOJ</button>
+                        <button class="tab-btn" data-categoria="SNKRS">SNKRS</button>
+                        <button class="tab-btn active" data-categoria="ACCESORIOS">ACCESORIOS</button>
+                        <button class="tab-btn" data-categoria="GORRAS">GORRAS</button>
+                        <button class="tab-btn" data-categoria="LENTES">LENTES</button>
+                        <button class="tab-btn" data-categoria="MOCHILA">MOCHILA</button>
+                        <button class="tab-btn" data-categoria="MALETA">MALETA</button>
+                        <button class="tab-btn" data-categoria="BANDOLERAS">BANDOLERAS</button>
+                        <button class="tab-btn" data-categoria="PERFUMES">PERFUMES</button>
+                        <button class="tab-btn" data-categoria="PELUCHES">PELUCHES</button>
+                        <button class="tab-btn" data-categoria="SHORT">SHORT</button>
+                        <button class="tab-btn" data-categoria="OTROS">OTROS</button>
+                        <button class="tab-btn" data-categoria="SIN_STOCK" style="background-color: #ffebee; border-color: #ffcdd2; color: #c62828;">SIN STOCK</button>
+                        <button class="tab-btn tab-btn-total" data-categoria="INVENTARIO_TOTAL">INVENTARIO TOTAL</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th id="precioInventarioHeader" style="display: none;">Precio Inventario</th>
+                                    <th>Precio Venta</th>
+                                    <th>Stock</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productosTableBody">
+                                <tr><td colspan="9" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <!-- Sección de Ventas (Punto de Venta) -->
+                <section id="ventas" class="content-section">
+                    <div class="punto-venta-container">
+                        <div class="punto-venta-left">
+                            <div class="categorias-tabs">
+                                <button class="tab-btn active" data-categoria-venta="TODAS">TODAS</button>
+                                <button class="tab-btn" data-categoria-venta="SUDADERAS">SUDADERAS</button>
+                                <button class="tab-btn" data-categoria-venta="CONJUNTOS">CONJUNTOS</button>
+                                <button class="tab-btn" data-categoria-venta="PLAYERAS">PLAYERAS</button>
+                                <button class="tab-btn" data-categoria-venta="CAMISETAS">CAMISETAS</button>
+                                <button class="tab-btn" data-categoria-venta="CALCETAS">CALCETAS</button>
+                                <button class="tab-btn" data-categoria-venta="PANS">PANS</button>
+                                <button class="tab-btn" data-categoria-venta="PANTALONES">PANTALONES</button>
+                                <button class="tab-btn" data-categoria-venta="PLAYERA MANGA LARGA">PLAYERA MANGA LARGA</button>
+                                <button class="tab-btn" data-categoria-venta="POLO">POLO</button>
+                                <button class="tab-btn" data-categoria-venta="CINTURÓN">CINTURÓN</button>
+                                <button class="tab-btn" data-categoria-venta="RELOJ">RELOJ</button>
+                                <button class="tab-btn" data-categoria-venta="SNKRS">SNKRS</button>
+                                <button class="tab-btn" data-categoria-venta="ACCESORIOS">ACCESORIOS</button>
+                                <button class="tab-btn" data-categoria-venta="GORRAS">GORRAS</button>
+                                <button class="tab-btn" data-categoria-venta="LENTES">LENTES</button>
+                                <button class="tab-btn" data-categoria-venta="MOCHILA">MOCHILA</button>
+                                <button class="tab-btn" data-categoria-venta="MALETA">MALETA</button>
+                                <button class="tab-btn" data-categoria-venta="BANDOLERAS">BANDOLERAS</button>
+                                <button class="tab-btn" data-categoria-venta="PERFUMES">PERFUMES</button>
+                                <button class="tab-btn" data-categoria-venta="PELUCHES">PELUCHES</button>
+                                <button class="tab-btn" data-categoria-venta="SHORT">SHORT</button>
+                                <button class="tab-btn" data-categoria-venta="OTROS">OTROS</button>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="buscarProducto" placeholder="🔍 Buscar producto por nombre o código..." class="search-input">
+                            </div>
+                            <div class="productos-grid" id="productosGrid">
+                                <div class="loading">Cargando productos...</div>
+                            </div>
+                        </div>
+                        <div class="punto-venta-right">
+                            <div class="carrito-container">
+                                <h3>🛒 Carrito de Compras</h3>
+                                <div class="carrito-items" id="carritoItems">
+                                    <div class="carrito-vacio">El carrito está vacío</div>
+                                </div>
+                                <div class="carrito-totales">
+                                    <div class="total-line">
+                                        <span>Subtotal:</span>
+                                        <span id="subtotal">$0.00</span>
+                                    </div>
+                                    <div class="total-line">
+                                        <span>Total:</span>
+                                        <span id="total" class="total-amount">$0.00</span>
+                                    </div>
+                                </div>
+                                <div class="carrito-acciones">
+                                    <button id="limpiarCarrito" class="btn btn-secondary">🗑️ Limpiar</button>
+                                    <button id="procesarVenta" class="btn btn-success">💳 Procesar Venta</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sección de Agregar Producto -->
+                <section id="agregar" class="content-section">
+                    <div class="form-container">
+                        <h2>Agregar Nuevo Producto</h2>
+                        <form id="productoForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="codigo">Código del Producto *</label>
+                                    <input type="text" id="codigo" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nombre">Nombre *</label>
+                                    <input type="text" id="nombre" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="descripcion">Descripción</label>
+                                <textarea id="descripcion" rows="3"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="precioInventario">Precio de Inventario (Costo) *</label>
+                                    <input type="number" id="precioInventario" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="precioVenta">Precio de Venta *</label>
+                                    <input type="number" id="precioVenta" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="categoria">Categoría *</label>
+                                    <select id="categoria" required>
+                                        <option value="">Seleccione una categoría</option>
+                                        <option value="SUDADERAS">SUDADERAS</option>
+                                        <option value="CONJUNTOS">CONJUNTOS</option>
+                                        <option value="PLAYERAS">PLAYERAS</option>
+                                        <option value="CAMISETAS">CAMISETAS</option>
+                                        <option value="CALCETAS">CALCETAS</option>
+                                        <option value="PANS">PANS</option>
+                                        <option value="PANTALONES">PANTALONES</option>
+                                        <option value="PLAYERA MANGA LARGA">PLAYERA MANGA LARGA</option>
+                                        <option value="POLO">POLO</option>
+                                        <option value="CINTURÓN">CINTURÓN</option>
+                                        <option value="RELOJ">RELOJ</option>
+                                        <option value="SNKRS">SNKRS</option>
+                                        <option value="ACCESORIOS">ACCESORIOS</option>
+                                        <option value="GORRAS">GORRAS</option>
+                                        <option value="LENTES">LENTES</option>
+                                        <option value="MOCHILA">MOCHILA</option>
+                                        <option value="MALETA">MALETA</option>
+                                        <option value="BANDOLERAS">BANDOLERAS</option>
+                                        <option value="PERFUMES">PERFUMES</option>
+                                        <option value="PELUCHES">PELUCHES</option>
+                                        <option value="SHORT">SHORT</option>
+                                        <option value="OTROS">OTROS</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="categoriaOtrosGroup" style="display: none; flex: 1;">
+                                    <label for="categoriaOtros">Especificar categoría (Otros) *</label>
+                                    <input type="text" id="categoriaOtros" placeholder="Escribe la categoría...">
+                                </div>
+                            </div>
+                            <div class="variantes-section">
+                                <h3 style="margin-top: 15px; margin-bottom: 10px; border-bottom: 2px solid #22c55e; padding-bottom: 5px;">Tallas y Colores (Variantes)</h3>
+                                <table class="data-table" style="margin-bottom: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Talla (Ej: S, M, 5, 28)</th>
+                                            <th>Color (Opcional)</th>
+                                            <th>Stock</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="variantesBody">
+                                        <!-- Filas de variantes -->
+                                    </tbody>
+                                </table>
+                                <button type="button" class="btn btn-secondary btn-small" onclick="agregarFilaVariante('variantesBody')">➕ Agregar Talla/Variante</button>
+                            </div>
+                            <div class="form-group">
+                                <label for="imagen">Imagen del Producto</label>
+                                <input type="file" id="imagen" accept="image/*">
+                                <div id="imagenPreview" class="imagen-preview"></div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success">💾 Guardar Producto</button>
+                                <button type="reset" class="btn btn-secondary">🔄 Limpiar</button>
+                            </div>
+                            <div id="productoMessage" class="message"></div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal para editar producto -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Editar Producto</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editProductForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="editCodigo">Código del Producto *</label>
+                    <input type="text" id="editCodigo" required>
+                </div>
+                <div class="form-group">
+                    <label for="editNombre">Nombre del Producto *</label>
+                    <input type="text" id="editNombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDescripcion">Descripción</label>
+                    <textarea id="editDescripcion" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPrecioInventario">Precio de Inventario (Costo) *</label>
+                        <input type="number" id="editPrecioInventario" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPrecioVenta">Precio de Venta *</label>
+                        <input type="number" id="editPrecioVenta" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="editCategoria">Categoría *</label>
+                        <select id="editCategoria" required>
+                            <option value="">Seleccione una categoría</option>
+                            <option value="SUDADERAS">SUDADERAS</option>
+                            <option value="CONJUNTOS">CONJUNTOS</option>
+                            <option value="PLAYERAS">PLAYERAS</option>
+                            <option value="CAMISETAS">CAMISETAS</option>
+                            <option value="CALCETAS">CALCETAS</option>
+                            <option value="PANS">PANS</option>
+                            <option value="PANTALONES">PANTALONES</option>
+                            <option value="PLAYERA MANGA LARGA">PLAYERA MANGA LARGA</option>
+                            <option value="POLO">POLO</option>
+                            <option value="CINTURÓN">CINTURÓN</option>
+                            <option value="RELOJ">RELOJ</option>
+                            <option value="SNKRS">SNKRS</option>
+                            <option value="ACCESORIOS">ACCESORIOS</option>
+                            <option value="GORRAS">GORRAS</option>
+                            <option value="LENTES">LENTES</option>
+                            <option value="MOCHILA">MOCHILA</option>
+                            <option value="MALETA">MALETA</option>
+                            <option value="BANDOLERAS">BANDOLERAS</option>
+                            <option value="PERFUMES">PERFUMES</option>
+                            <option value="PELUCHES">PELUCHES</option>
+                            <option value="SHORT">SHORT</option>
+                            <option value="OTROS">OTROS</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="editCategoriaOtrosGroup" style="display: none; flex: 1;">
+                        <label for="editCategoriaOtros">Especificar categoría (Otros) *</label>
+                        <input type="text" id="editCategoriaOtros" placeholder="Escribe la categoría...">
+                    </div>
+                </div>
+                <!-- Editar Variantes -->
+                <div class="variantes-section">
+                    <h3 style="margin-top: 15px; margin-bottom: 10px; border-bottom: 2px solid #22c55e; padding-bottom: 5px;">Tallas y Colores (Variantes)</h3>
+                    <table class="data-table" style="margin-bottom: 10px;">
+                        <thead>
+                            <tr>
+                                <th>Talla (Ej: S, M, 5, 28)</th>
+                                <th>Color (Opcional)</th>
+                                <th>Stock</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editVariantesBody">
+                            <!-- Filas de variantes -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="agregarFilaVariante('editVariantesBody')">➕ Agregar Talla/Variante</button>
+                </div>
+                <div class="form-group">
+                    <label for="editImagen">Imagen del Producto</label>
+                    <input type="file" id="editImagen" accept="image/*">
+                    <div id="editImagenPreview" class="imagen-preview"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">💾 Guardar Cambios</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">❌ Cancelar</button>
+                </div>
+                <div id="editProductMessage" class="message"></div>
+            </form>
+        </div>
+    </div>
+    <!-- Modal para Seleccionar Variante en Ventas -->
+    <div id="variantSelectorModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Selecciona Talla y Color</h2>
+                <button class="modal-close" onclick="closeVariantModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="variantSelectProductName" style="font-weight: bold; margin-bottom: 15px;"></p>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Talla</th>
+                                <th>Color</th>
+                                <th>Stock</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variantSelectorBody">
+                            <!-- Filas de variantes seleccionables -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal para Descuento -->
+    <div id="descuentoModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Modificar Precio</h2>
+                <button class="modal-close" onclick="cerrarModalDescuento()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="descuentoMensaje" style="margin-bottom: 15px; font-size: 15px; color: #333;"></p>
+                <div class="form-group">
+                    <label for="descuentoInputVal">Nuevo precio final ($):</label>
+                    <input type="number" id="descuentoInputVal" step="0.01" min="0" class="search-input" style="width: 100%; margin-top: 5px; padding: 10px;">
+                </div>
+                <div class="form-actions" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalDescuento()">❌ Cancelar</button>
+                    <button type="button" id="btnDescuentoAceptar" class="btn btn-success">✅ Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Supabase CDN y API Web para funcionamiento directo en el navegador/sitio web -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="webAPI.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
+
+

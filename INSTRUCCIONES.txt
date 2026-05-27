@@ -1,0 +1,79 @@
+═══════════════════════════════════════════════════════════════
+  SISTEMA DE INVENTARIO - INSTRUCCIONES DE INSTALACIÓN
+═══════════════════════════════════════════════════════════════
+
+PASO 1: INSTALAR DEPENDENCIAS
+──────────────────────────────
+Abre una terminal en esta carpeta y ejecuta:
+  npm install
+
+Esto instalará todas las dependencias necesarias (Electron, SQLite, etc.)
+
+
+PASO 2: PROBAR LA APLICACIÓN
+──────────────────────────────
+Para ejecutar la aplicación en modo desarrollo:
+  npm start
+
+Credenciales por defecto:
+  Usuario: admin
+  Contraseña: admin123
+
+
+PASO 3: CREAR EL EJECUTABLE (.EXE)
+───────────────────────────────────
+Para generar el archivo .exe instalable:
+  npm run build-win
+
+El instalador se creará en la carpeta "dist/"
+
+
+PASO 4: DISTRIBUIR
+───────────────────
+Una vez generado el .exe:
+  1. Ve a la carpeta "dist/"
+  2. Encontrarás un instalador .exe
+  3. Copia este archivo a otras laptops
+  4. Ejecuta el instalador en cada laptop
+  5. ¡Listo! La aplicación funcionará independientemente
+
+
+CARACTERÍSTICAS DEL SISTEMA
+────────────────────────────
+✓ Inicio de sesión seguro
+✓ Dashboard con estadísticas en tiempo real
+✓ Gestión completa de inventario
+✓ Registro de ventas
+✓ Agregar nuevos productos
+✓ Base de datos local (SQLite)
+✓ Interfaz moderna y fácil de usar
+
+
+NOTAS IMPORTANTES
+──────────────────
+- La base de datos se guarda localmente en cada instalación
+- Cada computadora tendrá su propia base de datos
+- Puedes cambiar la contraseña del admin desde la base de datos
+- El sistema funciona completamente offline
+
+
+SOLUCIÓN DE PROBLEMAS
+──────────────────────
+Si hay errores al instalar:
+  1. Asegúrate de tener Node.js instalado (versión 16 o superior)
+  2. Ejecuta: npm install --force
+  3. Si persiste, elimina node_modules y vuelve a instalar
+
+Si el .exe no se genera:
+  1. Verifica que todas las dependencias estén instaladas
+  2. Asegúrate de estar en Windows
+  3. Revisa que no haya errores en la consola
+
+
+═══════════════════════════════════════════════════════════════
+
+
+
+
+
+
