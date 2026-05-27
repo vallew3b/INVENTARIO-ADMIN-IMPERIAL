@@ -15,9 +15,8 @@ PASO 2: PROBAR LA APLICACIÓN
 Para ejecutar la aplicación en modo desarrollo:
   npm start
 
-Credenciales por defecto:
-  Usuario: admin
-  Contraseña: admin123
+Credenciales:
+  Usa las credenciales de los usuarios que hayas registrado en tu base de datos de Supabase.
 
 
 PASO 3: CREAR EL EJECUTABLE (.EXE)

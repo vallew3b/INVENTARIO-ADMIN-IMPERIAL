@@ -38,12 +38,11 @@ CREATE TABLE IF NOT EXISTS ventas (
     fecha TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 4. Insertar usuarios por defecto
-INSERT INTO usuarios (usuario, password, nombre, rol)
-VALUES 
-    ('admin', 'admin123', 'Administrador', 'admin'),
-    ('vendedor', 'vendedor1', 'Vendedor', 'vendedor')
-ON CONFLICT (usuario) DO NOTHING;
+-- 4. Insertar usuarios (Ejecutar directamente en el SQL Editor con tus propios usuarios/contraseñas seguros)
+-- NOTA DE SEGURIDAD: Nunca guardes contraseñas reales en tu código público de GitHub.
+-- Puedes crear tu usuario administrador ejecutando un comando como este en tu editor SQL de Supabase:
+-- INSERT INTO usuarios (usuario, password, nombre, rol)
+-- VALUES ('tu_usuario_admin', 'tu_contraseña_segura', 'Tu Nombre', 'admin');
 
 -- 5. Habilitar Row Level Security (RLS) - Opcional pero recomendado
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
