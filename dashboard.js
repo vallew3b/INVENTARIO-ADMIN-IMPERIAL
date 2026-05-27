@@ -2062,46 +2062,52 @@ async function loadGastos() {
 }
 
 // Inicializar el formulario y fecha por defecto para gastos
-window.addEventListener('DOMContentLoaded', () => {
-    const formGasto = document.getElementById('formGasto');
-    const inputFecha = document.getElementById('gastoFecha');
-    
-    if (inputFecha) {
-        // Poner la fecha de hoy por defecto
-        inputFecha.value = new Date().toISOString().split('T')[0];
-    }
-    
-    if (formGasto) {
-        formGasto.addEventListener('submit', async (e) => {
-            e.preventDefault();
+const formGasto = document.getElementById('formGasto');
+const inputFecha = document.getElementById('gastoFecha');
+
+if (inputFecha) {
+    // Poner la fecha de hoy por defecto
+    inputFecha.value = new Date().toISOString().split('T')[0];
+}
+
+if (formGasto) {
+    formGasto.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const concepto = document.getElementById('gastoConcepto').value.trim();
+        const monto = parseFloat(document.getElementById('gastoMonto').value);
+        const categoria = document.getElementById('gastoCategoria').value;
+        const fecha = document.getElementById('gastoFecha').value;
+        
+        if (!concepto || isNaN(monto) || monto <= 0) {
+            showToast('Datos inválidos', 'Por favor ingresa un concepto y monto válido', 'warning');
+            return;
+        }
+        
+        try {
+            // Deshabilitar botón para evitar doble clic
+            const submitBtn = formGasto.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
             
-            const concepto = document.getElementById('gastoConcepto').value.trim();
-            const monto = parseFloat(document.getElementById('gastoMonto').value);
-            const categoria = document.getElementById('gastoCategoria').value;
-            const fecha = document.getElementById('gastoFecha').value;
-            
-            if (!concepto || isNaN(monto) || monto <= 0) {
-                showToast('Datos inválidos', 'Por favor ingresa un concepto y monto válido', 'warning');
-                return;
-            }
-            
-            try {
-                const res = await window.electronAPI.addGasto({ concepto, monto, categoria, fecha });
-                if (res.success) {
-                    showToast('Gasto guardado', 'La inversión ha sido registrada correctamente', 'success');
-                    formGasto.reset();
-                    if (inputFecha) {
-                        inputFecha.value = new Date().toISOString().split('T')[0];
-                    }
-                    loadGastos();
-                } else {
-                    showToast('Error', 'No se pudo registrar la inversión: ' + res.error, 'error');
+            const res = await window.electronAPI.addGasto({ concepto, monto, categoria, fecha });
+            if (res.success) {
+                showToast('Gasto guardado', 'La inversión ha sido registrada correctamente', 'success');
+                formGasto.reset();
+                if (inputFecha) {
+                    inputFecha.value = new Date().toISOString().split('T')[0];
                 }
-            } catch (err) {
-                console.error('Error guardando gasto:', err);
-                showToast('Error', 'No se pudo registrar la inversión', 'error');
+                await loadGastos();
+            } else {
+                showToast('Error', 'No se pudo registrar la inversión: ' + res.error, 'error');
             }
-        });
-    }
-});
+            
+            if (submitBtn) submitBtn.disabled = false;
+        } catch (err) {
+            console.error('Error guardando gasto:', err);
+            showToast('Error', 'No se pudo registrar la inversión', 'error');
+            const submitBtn = formGasto.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+}
 
