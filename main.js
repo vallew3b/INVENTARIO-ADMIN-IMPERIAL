@@ -93,6 +93,18 @@ ipcMain.handle('get-estadisticas', async () => {
   return await db.getEstadisticas();
 });
 
+ipcMain.handle('get-gastos', async () => {
+  return await db.getGastos();
+});
+
+ipcMain.handle('add-gasto', async (event, gasto) => {
+  return await db.addGasto(gasto);
+});
+
+ipcMain.handle('delete-gasto', async (event, id) => {
+  return await db.deleteGasto(id);
+});
+
 // Handler para guardar imágenes en Supabase Storage
 ipcMain.handle('save-imagen', async (event, buffer, filename, mimeType) => {
   try {

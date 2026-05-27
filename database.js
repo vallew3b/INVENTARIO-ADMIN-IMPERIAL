@@ -450,6 +450,72 @@ class Database {
       };
     }
   }
+
+  // Métodos de Gastos y Fletes Operativos (OPEX)
+  async getGastos() {
+    try {
+      const { data, error } = await supabase
+        .from('gastos_negocio')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+      if (error) {
+        console.error('Error obteniendo gastos:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error obteniendo gastos:', error);
+      return [];
+    }
+  }
+
+  async addGasto(gasto) {
+    try {
+      const nuevoGasto = {
+        concepto: gasto.concepto || '',
+        monto: parseFloat(gasto.monto) || 0,
+        categoria: gasto.categoria || 'Otros',
+        fecha: gasto.fecha ? new Date(gasto.fecha).toISOString() : new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('gastos_negocio')
+        .insert([nuevoGasto])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error agregando gasto:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, gasto: data };
+    } catch (error) {
+      console.error('Error agregando gasto:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteGasto(id) {
+    try {
+      const { error } = await supabase
+        .from('gastos_negocio')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error eliminando gasto:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error eliminando gasto:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 module.exports = Database;

@@ -94,3 +94,20 @@ CREATE POLICY "Permitir actualización de imágenes" ON storage.objects
 CREATE POLICY "Permitir eliminación de imágenes" ON storage.objects
     FOR DELETE USING (bucket_id = 'imagenes');
 
+
+-- 9. Crear tabla de gastos e inversiones (OPEX Tracker)
+CREATE TABLE IF NOT EXISTS gastos_negocio (
+    id BIGSERIAL PRIMARY KEY,
+    concepto VARCHAR(255) NOT NULL,
+    monto DECIMAL(10, 2) NOT NULL,
+    categoria VARCHAR(100) DEFAULT 'Otros' NOT NULL,
+    fecha TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+ALTER TABLE gastos_negocio ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Seguridad gastos_negocio" ON gastos_negocio
+    FOR ALL
+    USING (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!')
+    WITH CHECK (current_setting('request.headers', true)::json->>'x-app-secret' = 'UrbanStoreImperio2026SecretKey!');
+

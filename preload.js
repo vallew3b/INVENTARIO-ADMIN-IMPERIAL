@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addVentaMultiple: (ventas) => ipcRenderer.invoke('add-venta-multiple', ventas),
   getVentas: (fechaInicio, fechaFin) => ipcRenderer.invoke('get-ventas', fechaInicio, fechaFin),
   getEstadisticas: () => ipcRenderer.invoke('get-estadisticas'),
+  getGastos: () => ipcRenderer.invoke('get-gastos'),
+  addGasto: (gasto) => ipcRenderer.invoke('add-gasto', gasto),
+  deleteGasto: (id) => ipcRenderer.invoke('delete-gasto', id),
   saveImagen: (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();

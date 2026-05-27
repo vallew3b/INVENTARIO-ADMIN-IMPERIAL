@@ -59,6 +59,11 @@ function configurarPermisos() {
             el.style.display = 'none';
         });
         
+        // Ocultar menú de gastos / inversión
+        document.querySelectorAll('.sidebar-menu a[data-section="gastos"]').forEach(el => {
+            el.style.display = 'none';
+        });
+        
         // Ocultar cards del dashboard
         document.querySelectorAll('.dashboard-card[data-section="agregar"]').forEach(el => {
             el.style.display = 'none';
@@ -86,9 +91,15 @@ function configurarPermisos() {
             seccionInicio.style.display = 'none';
         }
         
+        // Ocultar sección de gastos / inversión
+        const seccionGastos = document.getElementById('gastos');
+        if (seccionGastos) {
+            seccionGastos.style.display = 'none';
+        }
+        
         // Si está en una sección no permitida, redirigir a inventario
         const currentSection = document.querySelector('.content-section.active');
-        if (currentSection && (currentSection.id === 'agregar' || currentSection.id === 'estadisticas' || currentSection.id === 'inicio')) {
+        if (currentSection && (currentSection.id === 'agregar' || currentSection.id === 'estadisticas' || currentSection.id === 'inicio' || currentSection.id === 'gastos')) {
             navigateToSection('inventario');
         }
         
@@ -266,13 +277,16 @@ function navigateToSection(section) {
         'inicio': 'Dashboard',
         'inventario': 'Inventario',
         'ventas': 'Punto de Venta',
-        'agregar': 'Agregar Producto'
+        'agregar': 'Agregar Producto',
+        'gastos': 'Gastos e Inversión'
     };
     document.getElementById('sectionTitle').textContent = titles[mappedSection] || 'Dashboard';
     
     // Cargar datos según la sección
     if (mappedSection === 'inicio') {
         loadEstadisticas();
+    } else if (mappedSection === 'gastos') {
+        loadGastos();
     } else if (mappedSection === 'inventario') {
         // Asegurar que las pestañas estén inicializadas y visibles
         setTimeout(() => {
@@ -1958,6 +1972,133 @@ window.addEventListener('DOMContentLoaded', () => {
             const card = e.target.closest('.dashboard-card');
             if (card) {
                 checkAndCloseSidebar();
+            }
+        });
+    }
+});
+
+// ==================================================
+// MÓDULO DE GASTOS Y INVERSIONES OPERATIVAS (OPEX)
+// ==================================================
+
+// Cargar gastos e inversiones
+async function loadGastos() {
+    const tbody = document.getElementById('gastosTableBody');
+    const totalEl = document.getElementById('statGastosTotal');
+    if (!tbody) return;
+    
+    tbody.innerHTML = `<tr><td colspan="5" class="loading">Cargando historial de gastos...</td></tr>`;
+    
+    try {
+        const gastos = await window.electronAPI.getGastos();
+        
+        if (gastos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No hay gastos o inversiones registradas</td></tr>`;
+            if (totalEl) totalEl.textContent = formatCurrency(0);
+            return;
+        }
+        
+        let totalAcumulado = 0;
+        tbody.innerHTML = '';
+        
+        gastos.forEach(g => {
+            const monto = parseFloat(g.monto) || 0;
+            totalAcumulado += monto;
+            
+            const fechaObj = new Date(g.fecha);
+            const fechaStr = fechaObj.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }) + 
+                             ' ' + fechaObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${fechaStr}</td>
+                <td><span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--primary-emerald); border: 1px solid rgba(16, 185, 129, 0.2); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">${g.categoria}</span></td>
+                <td style="font-weight: 500; color: var(--text-primary);">${g.concepto}</td>
+                <td style="font-weight: bold; color: var(--text-primary);">${formatCurrency(monto)}</td>
+                <td>
+                    <button class="btn btn-secondary btn-delete-gasto" data-id="${g.id}" style="padding: 6px 10px; font-size: 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 6px; cursor: pointer;">🗑️ Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        if (totalEl) {
+            totalEl.textContent = formatCurrency(totalAcumulado);
+            // Si está activo el modo de privacidad (dinero oculto), aplicar clase de difuminado
+            if (document.body.classList.contains('privacy-mode')) {
+                totalEl.classList.add('blurred-amount');
+            } else {
+                totalEl.classList.remove('blurred-amount');
+            }
+        }
+        
+        // Agregar listeners para los botones de eliminar
+        tbody.querySelectorAll('.btn-delete-gasto').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const button = e.target.closest('.btn-delete-gasto');
+                const id = button.getAttribute('data-id');
+                if (confirm('¿Estás seguro de que deseas eliminar este registro de gasto?')) {
+                    try {
+                        const res = await window.electronAPI.deleteGasto(id);
+                        if (res.success) {
+                            showToast('Gasto eliminado', 'La inversión ha sido eliminada con éxito', 'success');
+                            loadGastos();
+                        } else {
+                            showToast('Error', 'No se pudo eliminar el gasto: ' + res.error, 'error');
+                        }
+                    } catch (err) {
+                        console.error('Error eliminando gasto:', err);
+                        showToast('Error', 'No se pudo eliminar el gasto', 'error');
+                    }
+                }
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error cargando gastos:', error);
+        tbody.innerHTML = `<tr><td colspan="5" class="loading text-danger">Error al conectar con la base de datos</td></tr>`;
+    }
+}
+
+// Inicializar el formulario y fecha por defecto para gastos
+window.addEventListener('DOMContentLoaded', () => {
+    const formGasto = document.getElementById('formGasto');
+    const inputFecha = document.getElementById('gastoFecha');
+    
+    if (inputFecha) {
+        // Poner la fecha de hoy por defecto
+        inputFecha.value = new Date().toISOString().split('T')[0];
+    }
+    
+    if (formGasto) {
+        formGasto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const concepto = document.getElementById('gastoConcepto').value.trim();
+            const monto = parseFloat(document.getElementById('gastoMonto').value);
+            const categoria = document.getElementById('gastoCategoria').value;
+            const fecha = document.getElementById('gastoFecha').value;
+            
+            if (!concepto || isNaN(monto) || monto <= 0) {
+                showToast('Datos inválidos', 'Por favor ingresa un concepto y monto válido', 'warning');
+                return;
+            }
+            
+            try {
+                const res = await window.electronAPI.addGasto({ concepto, monto, categoria, fecha });
+                if (res.success) {
+                    showToast('Gasto guardado', 'La inversión ha sido registrada correctamente', 'success');
+                    formGasto.reset();
+                    if (inputFecha) {
+                        inputFecha.value = new Date().toISOString().split('T')[0];
+                    }
+                    loadGastos();
+                } else {
+                    showToast('Error', 'No se pudo registrar la inversión: ' + res.error, 'error');
+                }
+            } catch (err) {
+                console.error('Error guardando gasto:', err);
+                showToast('Error', 'No se pudo registrar la inversión', 'error');
             }
         });
     }

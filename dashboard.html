@@ -59,6 +59,12 @@
                                 <span class="menu-text">Agregar Producto</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="#" data-section="gastos">
+                                <span class="menu-icon">💸</span>
+                                <span class="menu-text">Gastos / Inversión</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -229,6 +235,87 @@
                                     <tr><td colspan="6" class="loading">Cargando ventas del día...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sección de Gastos / Inversión -->
+                <section id="gastos" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <span class="section-subtitle">CONTROL OPERATIVO</span>
+                            <h2>💸 Inversiones y Gastos del Negocio</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjeta Resumen de Inversión Total -->
+                    <div class="stats-grid-modern" style="grid-template-columns: 1fr; margin-bottom: 25px;">
+                        <div class="stat-card-modern" style="background: linear-gradient(135deg, var(--dark-charcoal), var(--dark-obsidian)); border: 1px solid var(--border-gray);">
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">TOTAL INVERTIDO EN EL NEGOCIO</span>
+                                <div class="stat-card-icon-wrapper bg-soft-emerald">💰</div>
+                            </div>
+                            <h3 id="statGastosTotal" class="stat-card-value" style="font-size: 36px; color: var(--primary-emerald);">$0.00</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-indicator text-success">↑ Activo</span>
+                                <span class="trend-context">Suma de bolsas, tarjetas, fletes, etc.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="punto-venta-container" style="grid-template-columns: 1fr 2fr; gap: 25px; align-items: start;">
+                        <!-- Columna Izquierda: Formulario de Registro -->
+                        <div class="form-container">
+                            <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--text-primary); border-bottom: 1px solid var(--border-gray); padding-bottom: 10px;">📝 Registrar Nuevo Gasto</h3>
+                            <form id="formGasto">
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label for="gastoConcepto">Concepto / Descripción:</label>
+                                    <input type="text" id="gastoConcepto" placeholder="Ej: 100 Bolsas de cartón para empaque" required class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                </div>
+                                <div class="form-row" style="margin-bottom: 15px; display: flex; gap: 15px;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="gastoMonto">Monto Invertido ($):</label>
+                                        <input type="number" id="gastoMonto" step="0.01" min="0.01" placeholder="0.00" required class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="gastoCategoria">Categoría:</label>
+                                        <select id="gastoCategoria" class="search-input" style="width: 100%; padding: 10px; margin-top: 5px; height: 39px; background: var(--bg-slate-light); color: var(--text-primary); border: 1px solid var(--border-gray); border-radius: 8px;">
+                                            <option value="Empaque y Envío">Empaque y Envío</option>
+                                            <option value="Publicidad y Papelería">Publicidad y Papelería</option>
+                                            <option value="Logística y Flete">Logística y Flete</option>
+                                            <option value="Servicios y Renta">Servicios y Renta</option>
+                                            <option value="Mercancía / Inventario">Mercancía / Inventario</option>
+                                            <option value="Otros">Otros</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label for="gastoFecha">Fecha:</label>
+                                    <input type="date" id="gastoFecha" class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-size: 14px; font-weight: 600; padding: 12px;">💾 Guardar Inversión</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Columna Derecha: Historial de Gastos -->
+                        <div class="ventas-dia-container" style="margin-top: 0;">
+                            <h3 style="margin-bottom: 15px; font-size: 18px; color: var(--text-primary);">📋 Historial de Inversiones</h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Categoría</th>
+                                            <th>Concepto / Descripción</th>
+                                            <th>Monto</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gastosTableBody">
+                                        <tr><td colspan="5" class="loading">Cargando historial de gastos...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </section>
