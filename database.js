@@ -10,10 +10,19 @@ class Database {
     try {
       const { data, error } = await supabase
         .from('usuarios')
-        .select('*')
+        .select(`
+          *,
+          comercios (
+            id,
+            nombre,
+            plan,
+            estado_suscripcion,
+            fecha_vencimiento
+          )
+        `)
         .eq('usuario', usuario)
         .eq('password', password)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         return null;
@@ -53,15 +62,20 @@ class Database {
   }
 
   // Métodos de productos
-  async getProductos() {
+  async getProductos(comercioId) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('productos')
         .select(`
           *,
           variantes:producto_variantes(*)
-        `)
-        .order('id', { ascending: false });
+        `);
+
+      if (comercioId) {
+        query = query.eq('comercio_id', comercioId);
+      }
+
+      const { data, error } = await query.order('id', { ascending: false });
 
       if (error) {
         console.error('Error obteniendo productos:', error);
@@ -98,7 +112,7 @@ class Database {
     }
   }
 
-  async addProducto(producto) {
+  async addProducto(producto, comercioId) {
     try {
       const nuevoProducto = {
         codigo: producto.codigo || '',
@@ -109,7 +123,8 @@ class Database {
         precio: producto.precioVenta || producto.precio || 0,
         categoria: producto.categoria || '',
         imagen: producto.imagen || null,
-        fecha_creacion: new Date().toISOString()
+        fecha_creacion: new Date().toISOString(),
+        comercio_id: comercioId
       };
 
       const { data, error } = await supabase
@@ -257,14 +272,15 @@ class Database {
   }
 
   // Métodos de ventas
-  async addVenta(venta) {
+  async addVenta(venta, comercioId) {
     try {
       const nuevaVenta = {
         producto_id: venta.producto_id,
         cantidad: venta.cantidad,
         precio_unitario: venta.precio_unitario,
         total: venta.cantidad * venta.precio_unitario,
-        fecha: new Date().toISOString()
+        fecha: new Date().toISOString(),
+        comercio_id: comercioId
       };
 
       const { data, error } = await supabase
@@ -309,7 +325,7 @@ class Database {
     }
   }
 
-  async addVentaMultiple(ventas) {
+  async addVentaMultiple(ventas, comercioId) {
     try {
       const fecha = new Date().toISOString();
       const nuevasVentas = ventas.map(venta => ({
@@ -317,7 +333,8 @@ class Database {
         cantidad: venta.cantidad,
         precio_unitario: venta.precio_unitario,
         total: venta.cantidad * venta.precio_unitario,
-        fecha: fecha
+        fecha: fecha,
+        comercio_id: comercioId
       }));
 
       const { data, error } = await supabase
@@ -366,7 +383,7 @@ class Database {
     }
   }
 
-  async getVentas(fechaInicio, fechaFin) {
+  async getVentas(fechaInicio, fechaFin, comercioId) {
     try {
       let query = supabase
         .from('ventas')
@@ -376,6 +393,10 @@ class Database {
         query = query
           .gte('fecha', fechaInicio + 'T00:00:00.000Z')
           .lte('fecha', fechaFin + 'T23:59:59.999Z');
+      }
+
+      if (comercioId) {
+        query = query.eq('comercio_id', comercioId);
       }
 
       const { data, error } = await query.order('fecha', { ascending: false });
@@ -392,12 +413,12 @@ class Database {
     }
   }
 
-  async getEstadisticas() {
+  async getEstadisticas(comercioId) {
     try {
       const hoy = new Date().toISOString().split('T')[0];
 
       // Obtener todos los productos
-      const productos = await this.getProductos();
+      const productos = await this.getProductos(comercioId);
       const totalProductos = productos.length;
 
       const inventarioTotal = productos.reduce((sum, p) => {
@@ -405,9 +426,15 @@ class Database {
       }, 0);
 
       // Obtener todas las ventas
-      const { data: ventas, error: ventasError } = await supabase
+      let query = supabase
         .from('ventas')
         .select('*');
+
+      if (comercioId) {
+        query = query.eq('comercio_id', comercioId);
+      }
+
+      const { data: ventas, error: ventasError } = await query;
 
       if (ventasError) {
         console.error('Error obteniendo ventas para estadísticas:', ventasError);
@@ -452,12 +479,17 @@ class Database {
   }
 
   // Métodos de Gastos y Fletes Operativos (OPEX)
-  async getGastos() {
+  async getGastos(comercioId) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('gastos_negocio')
-        .select('*')
-        .order('fecha', { ascending: false });
+        .select('*');
+
+      if (comercioId) {
+        query = query.eq('comercio_id', comercioId);
+      }
+
+      const { data, error } = await query.order('fecha', { ascending: false });
 
       if (error) {
         console.error('Error obteniendo gastos:', error);
@@ -471,13 +503,14 @@ class Database {
     }
   }
 
-  async addGasto(gasto) {
+  async addGasto(gasto, comercioId) {
     try {
       const nuevoGasto = {
         concepto: gasto.concepto || '',
         monto: parseFloat(gasto.monto) || 0,
         categoria: gasto.categoria || 'Otros',
-        fecha: gasto.fecha ? new Date(gasto.fecha).toISOString() : new Date().toISOString()
+        fecha: gasto.fecha ? new Date(gasto.fecha).toISOString() : new Date().toISOString(),
+        comercio_id: comercioId
       };
 
       const { data, error } = await supabase
@@ -513,6 +546,127 @@ class Database {
       return { success: true };
     } catch (error) {
       console.error('Error eliminando gasto:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ==========================================================
+  // METODOS ADICIONALES EXCLUSIVOS DE SUPERADMIN
+  // ==========================================================
+
+  async getComercios() {
+    try {
+      const { data: comercios, error: comerciosError } = await supabase
+        .from('comercios')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (comerciosError) {
+        console.error('Error obteniendo comercios:', comerciosError);
+        return [];
+      }
+
+      // Cargar usuarios vinculados
+      const { data: usuarios, error: usuariosError } = await supabase
+        .from('usuarios')
+        .select('id, usuario, nombre, rol, comercio_id');
+
+      if (usuariosError) {
+        console.error('Error obteniendo usuarios para comercios:', usuariosError);
+        return comercios || [];
+      }
+
+      return (comercios || []).map(c => {
+        const uComercio = (usuarios || []).filter(u => u.comercio_id === c.id);
+        return {
+          ...c,
+          usuarios: uComercio,
+          usuariosCount: uComercio.length
+        };
+      });
+    } catch (error) {
+      console.error('Error en getComercios:', error);
+      return [];
+    }
+  }
+
+  async addComercio(nombre, plan, fechaVencimiento) {
+    try {
+      const nuevoComercio = {
+        nombre,
+        plan: plan || '1_mes',
+        estado_suscripcion: 'activo',
+        fecha_vencimiento: fechaVencimiento || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('comercios')
+        .insert([nuevoComercio])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error agregando comercio:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, comercio: data };
+    } catch (error) {
+      console.error('Error agregando comercio:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateSuscripcion(comercioId, estado, plan, fechaVencimiento) {
+    try {
+      const updateData = {};
+      if (estado) updateData.estado_suscripcion = estado;
+      if (plan) updateData.plan = plan;
+      if (fechaVencimiento) updateData.fecha_vencimiento = fechaVencimiento;
+
+      const { data, error } = await supabase
+        .from('comercios')
+        .update(updateData)
+        .eq('id', comercioId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error actualizando suscripción:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, comercio: data };
+    } catch (error) {
+      console.error('Error actualizando suscripción:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async crearUsuarioComercio(usuario, password, nombre, rol, comercioId) {
+    try {
+      const nuevoUsuario = {
+        usuario,
+        password,
+        nombre,
+        rol: rol || 'admin',
+        comercio_id: comercioId
+      };
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .insert([nuevoUsuario])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creando usuario para comercio:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, usuario: data };
+    } catch (error) {
+      console.error('Error creando usuario de comercio:', error);
       return { success: false, error: error.message };
     }
   }

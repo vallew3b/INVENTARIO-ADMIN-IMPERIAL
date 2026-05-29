@@ -51,22 +51,39 @@ app.on('window-all-closed', () => {
   }
 });
 
-// IPC Handlers
 ipcMain.handle('login', async (event, { usuario, password }) => {
   const user = await db.findUser(usuario, password);
-  return user ? { success: true, user: { id: user.id, usuario: user.usuario, nombre: user.nombre, rol: user.rol || 'admin' } } : { success: false };
+  if (!user) return { success: false };
+  
+  return { 
+    success: true, 
+    user: { 
+      id: user.id, 
+      usuario: user.usuario, 
+      nombre: user.nombre, 
+      rol: user.rol || 'admin',
+      comercio_id: user.comercio_id,
+      comercio: user.comercios ? {
+        id: user.comercios.id,
+        nombre: user.comercios.nombre,
+        plan: user.comercios.plan,
+        estado_suscripcion: user.comercios.estado_suscripcion,
+        fecha_vencimiento: user.comercios.fecha_vencimiento
+      } : null
+    } 
+  };
 });
 
-ipcMain.handle('get-productos', async () => {
-  return await db.getProductos();
+ipcMain.handle('get-productos', async (event, comercioId) => {
+  return await db.getProductos(comercioId);
 });
 
 ipcMain.handle('get-producto', async (event, id) => {
   return await db.getProducto(id);
 });
 
-ipcMain.handle('add-producto', async (event, producto) => {
-  return await db.addProducto(producto);
+ipcMain.handle('add-producto', async (event, producto, comercioId) => {
+  return await db.addProducto(producto, comercioId);
 });
 
 ipcMain.handle('update-producto', async (event, id, producto) => {
@@ -77,32 +94,49 @@ ipcMain.handle('delete-producto', async (event, id) => {
   return await db.deleteProducto(id);
 });
 
-ipcMain.handle('add-venta', async (event, venta) => {
-  return await db.addVenta(venta);
+ipcMain.handle('add-venta', async (event, venta, comercioId) => {
+  return await db.addVenta(venta, comercioId);
 });
 
-ipcMain.handle('add-venta-multiple', async (event, ventas) => {
-  return await db.addVentaMultiple(ventas);
+ipcMain.handle('add-venta-multiple', async (event, ventas, comercioId) => {
+  return await db.addVentaMultiple(ventas, comercioId);
 });
 
-ipcMain.handle('get-ventas', async (event, fechaInicio, fechaFin) => {
-  return await db.getVentas(fechaInicio, fechaFin);
+ipcMain.handle('get-ventas', async (event, fechaInicio, fechaFin, comercioId) => {
+  return await db.getVentas(fechaInicio, fechaFin, comercioId);
 });
 
-ipcMain.handle('get-estadisticas', async () => {
-  return await db.getEstadisticas();
+ipcMain.handle('get-estadisticas', async (event, comercioId) => {
+  return await db.getEstadisticas(comercioId);
 });
 
-ipcMain.handle('get-gastos', async () => {
-  return await db.getGastos();
+ipcMain.handle('get-gastos', async (event, comercioId) => {
+  return await db.getGastos(comercioId);
 });
 
-ipcMain.handle('add-gasto', async (event, gasto) => {
-  return await db.addGasto(gasto);
+ipcMain.handle('add-gasto', async (event, gasto, comercioId) => {
+  return await db.addGasto(gasto, comercioId);
 });
 
 ipcMain.handle('delete-gasto', async (event, id) => {
   return await db.deleteGasto(id);
+});
+
+// Handlers adicionales de Superadmin
+ipcMain.handle('get-comercios', async () => {
+  return await db.getComercios();
+});
+
+ipcMain.handle('add-comercio', async (event, nombre, plan, fechaVencimiento) => {
+  return await db.addComercio(nombre, plan, fechaVencimiento);
+});
+
+ipcMain.handle('update-suscripcion', async (event, comercioId, estado, plan, fechaVencimiento) => {
+  return await db.updateSuscripcion(comercioId, estado, plan, fechaVencimiento);
+});
+
+ipcMain.handle('crear-usuario-comercio', async (event, usuario, password, nombre, rol, comercioId) => {
+  return await db.crearUsuarioComercio(usuario, password, nombre, rol, comercioId);
 });
 
 // Handler para guardar imágenes en Supabase Storage

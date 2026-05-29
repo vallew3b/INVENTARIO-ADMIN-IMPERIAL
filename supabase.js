@@ -34,8 +34,8 @@ try {
   }
 }
 
-const supabaseUrl = 'https://pyuqebokjhtwyrojwgxd.supabase.co';
-const supabaseAnonKey = 'sb_publishable_IUyaOWBuDvTAURD92VCxQQ_AGQN1-pw';
+const supabaseUrl = 'https://qlinfgsqpzyhioqygevv.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsaW5mZ3NxcHp5aGlvcXlnZXZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNTY1NzcsImV4cCI6MjA5MjczMjU3N30.4AitjCtqVVNur8AV7FoA7Dp1mPoln8Ceazm4gpdJxT0';
 
 let supabaseServiceKey = '';
 try {

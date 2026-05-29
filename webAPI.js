@@ -13,9 +13,9 @@
 
   console.log('Entorno Web detectado. Inicializando conexión directa a Supabase...');
 
-  // Configuración de Supabase (Credenciales públicas obtenidas de supabase.js)
-  const supabaseUrl = 'https://pyuqebokjhtwyrojwgxd.supabase.co';
-  const supabaseAnonKey = 'sb_publishable_IUyaOWBuDvTAURD92VCxQQ_AGQN1-pw';
+  // Configuración de Supabase (Credenciales actualizadas para el proyecto qlinfgsqpzyhioqygevv)
+  const supabaseUrl = 'https://qlinfgsqpzyhioqygevv.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsaW5mZ3NxcHp5aGlvcXlnZXZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNTY1NzcsImV4cCI6MjA5MjczMjU3N30.4AitjCtqVVNur8AV7FoA7Dp1mPoln8Ceazm4gpdJxT0';
   const appSecretKey = 'UrbanStoreImperio2026SecretKey!';
 
   // Verificar que el SDK de Supabase esté cargado
@@ -32,6 +32,21 @@
       }
     }
   });
+
+  // Obtener el ID del comercio activo de forma segura como fallback
+  function getActiveComercioId(explicitComercioId) {
+    if (explicitComercioId) return explicitComercioId;
+    
+    try {
+      const loggedUser = JSON.parse(sessionStorage.getItem('user'));
+      if (loggedUser) {
+        return loggedUser.comercio_id;
+      }
+    } catch (e) {
+      console.error('Error leyendo sesión del usuario en webAPI:', e);
+    }
+    return null;
+  }
 
   // Función auxiliar para formatear productos tal como lo hace database.js
   function formatearProducto(producto) {
@@ -61,12 +76,21 @@
 
   // Definir la interfaz en window.electronAPI
   window.electronAPI = {
-    // Autenticación de usuarios
+    // Autenticación de usuarios con unión de comercios
     login: async ({ usuario, password }) => {
       try {
         const { data, error } = await supabase
           .from('usuarios')
-          .select('*')
+          .select(`
+            *,
+            comercios (
+              id,
+              nombre,
+              plan,
+              estado_suscripcion,
+              fecha_vencimiento
+            )
+          `)
           .eq('usuario', usuario)
           .eq('password', password)
           .maybeSingle();
@@ -82,7 +106,15 @@
             id: data.id, 
             usuario: data.usuario, 
             nombre: data.nombre, 
-            rol: data.rol || 'admin' 
+            rol: data.rol || 'admin',
+            comercio_id: data.comercio_id,
+            comercio: data.comercios ? {
+              id: data.comercios.id,
+              nombre: data.comercios.nombre,
+              plan: data.comercios.plan,
+              estado_suscripcion: data.comercios.estado_suscripcion,
+              fecha_vencimiento: data.comercios.fecha_vencimiento
+            } : null
           } 
         };
       } catch (error) {
@@ -91,16 +123,22 @@
       }
     },
 
-    // Obtener todos los productos con sus variantes
-    getProductos: async () => {
+    // Obtener todos los productos con sus variantes aislados por comercio
+    getProductos: async (comercioId) => {
       try {
-        const { data, error } = await supabase
+        const targetComercioId = getActiveComercioId(comercioId);
+        let query = supabase
           .from('productos')
           .select(`
             *,
             variantes:producto_variantes(*)
-          `)
-          .order('id', { ascending: false });
+          `);
+
+        if (targetComercioId) {
+          query = query.eq('comercio_id', targetComercioId);
+        }
+
+        const { data, error } = await query.order('id', { ascending: false });
 
         if (error) {
           console.error('Error obteniendo productos:', error);
@@ -138,9 +176,10 @@
       }
     },
 
-    // Agregar un producto con sus variantes
-    addProducto: async (producto) => {
+    // Agregar un producto con sus variantes y comercio_id
+    addProducto: async (producto, comercioId) => {
       try {
+        const targetComercioId = getActiveComercioId(comercioId);
         const nuevoProducto = {
           codigo: producto.codigo || '',
           nombre: producto.nombre || '',
@@ -150,7 +189,8 @@
           precio: producto.precioVenta || producto.precio || 0,
           categoria: producto.categoria || '',
           imagen: producto.imagen || null,
-          fecha_creacion: new Date().toISOString()
+          fecha_creacion: new Date().toISOString(),
+          comercio_id: targetComercioId
         };
 
         const { data, error } = await supabase
@@ -298,15 +338,17 @@
       }
     },
 
-    // Agregar venta
-    addVenta: async (venta) => {
+    // Agregar venta aislada por comercio
+    addVenta: async (venta, comercioId) => {
       try {
+        const targetComercioId = getActiveComercioId(comercioId);
         const nuevaVenta = {
           producto_id: venta.producto_id,
           cantidad: venta.cantidad,
           precio_unitario: venta.precio_unitario,
           total: venta.cantidad * venta.precio_unitario,
-          fecha: new Date().toISOString()
+          fecha: new Date().toISOString(),
+          comercio_id: targetComercioId
         };
 
         const { data, error } = await supabase
@@ -357,16 +399,18 @@
       }
     },
 
-    // Agregar ventas múltiples
-    addVentaMultiple: async (ventas) => {
+    // Agregar ventas múltiples aisladas por comercio
+    addVentaMultiple: async (ventas, comercioId) => {
       try {
+        const targetComercioId = getActiveComercioId(comercioId);
         const fecha = new Date().toISOString();
         const nuevasVentas = ventas.map(venta => ({
           producto_id: venta.producto_id,
           cantidad: venta.cantidad,
           precio_unitario: venta.precio_unitario,
           total: venta.cantidad * venta.precio_unitario,
-          fecha: fecha
+          fecha: fecha,
+          comercio_id: targetComercioId
         }));
 
         const { data, error } = await supabase
@@ -418,9 +462,10 @@
       }
     },
 
-    // Obtener ventas por rango de fechas
-    getVentas: async (fechaInicio, fechaFin) => {
+    // Obtener ventas por rango de fechas y comercio
+    getVentas: async (fechaInicio, fechaFin, comercioId) => {
       try {
+        const targetComercioId = getActiveComercioId(comercioId);
         let query = supabase
           .from('ventas')
           .select('*');
@@ -429,6 +474,10 @@
           query = query
             .gte('fecha', fechaInicio + 'T00:00:00.000Z')
             .lte('fecha', fechaFin + 'T23:59:59.999Z');
+        }
+
+        if (targetComercioId) {
+          query = query.eq('comercio_id', targetComercioId);
         }
 
         const { data, error } = await query.order('fecha', { ascending: false });
@@ -445,29 +494,30 @@
       }
     },
 
-    // Obtener estadísticas consolidadas
-    getEstadisticas: async () => {
+    // Obtener estadísticas consolidadas por comercio
+    getEstadisticas: async (comercioId) => {
       try {
+        const targetComercioId = getActiveComercioId(comercioId);
         const hoy = new Date().toISOString().split('T')[0];
 
-        // Obtener todos los productos
-        const { data: prods, error: prodsError } = await supabase
-          .from('productos')
-          .select('*, variantes:producto_variantes(*)');
-
-        if (prodsError) throw prodsError;
-
-        const productos = (prods || []).map(p => formatearProducto(p));
+        // Obtener todos los productos del comercio
+        const productos = await window.electronAPI.getProductos(targetComercioId);
         const totalProductos = productos.length;
 
         const inventarioTotal = productos.reduce((sum, p) => {
           return sum + (p.precioInventario || 0) * (p.stock || 0);
         }, 0);
 
-        // Obtener todas las ventas
-        const { data: ventas, error: ventasError } = await supabase
+        // Obtener todas las ventas del comercio
+        let queryVentas = supabase
           .from('ventas')
           .select('*');
+        
+        if (targetComercioId) {
+          queryVentas = queryVentas.eq('comercio_id', targetComercioId);
+        }
+
+        const { data: ventas, error: ventasError } = await queryVentas;
 
         if (ventasError) throw ventasError;
 
@@ -565,13 +615,19 @@
       }
     },
 
-    // Obtener todos los gastos registrados
-    getGastos: async () => {
+    // Obtener todos los gastos registrados por comercio
+    getGastos: async (comercioId) => {
       try {
-        const { data, error } = await supabase
+        const targetComercioId = getActiveComercioId(comercioId);
+        let query = supabase
           .from('gastos_negocio')
-          .select('*')
-          .order('fecha', { ascending: false });
+          .select('*');
+
+        if (targetComercioId) {
+          query = query.eq('comercio_id', targetComercioId);
+        }
+
+        const { data, error } = await query.order('fecha', { ascending: false });
 
         if (error) {
           console.error('Error obteniendo gastos:', error);
@@ -585,14 +641,16 @@
       }
     },
 
-    // Agregar un nuevo gasto
-    addGasto: async (gasto) => {
+    // Agregar un nuevo gasto vinculado a comercio
+    addGasto: async (gasto, comercioId) => {
       try {
+        const targetComercioId = getActiveComercioId(comercioId);
         const nuevoGasto = {
           concepto: gasto.concepto || '',
           monto: parseFloat(gasto.monto) || 0,
           categoria: gasto.categoria || 'Otros',
-          fecha: gasto.fecha ? new Date(gasto.fecha).toISOString() : new Date().toISOString()
+          fecha: gasto.fecha ? new Date(gasto.fecha).toISOString() : new Date().toISOString(),
+          comercio_id: targetComercioId
         };
 
         const { data, error } = await supabase
@@ -631,6 +689,186 @@
         console.error('Error de red eliminando gasto:', error);
         return { success: false, error: error.message };
       }
+    },
+
+    // ==========================================================
+    // METODOS ADICIONALES EXCLUSIVOS DE SUPERADMIN
+    // ==========================================================
+
+    getComercios: async () => {
+      try {
+        const { data: comercios, error: comerciosError } = await supabase
+          .from('comercios')
+          .select('*')
+          .order('id', { ascending: true });
+
+        if (comerciosError) {
+          console.error('Error obteniendo comercios:', comerciosError);
+          return [];
+        }
+
+        // Cargar usuarios vinculados
+        const { data: usuarios, error: usuariosError } = await supabase
+          .from('usuarios')
+          .select('id, usuario, nombre, rol, comercio_id');
+
+        if (usuariosError) {
+          console.error('Error obteniendo usuarios para comercios:', usuariosError);
+          return comercios || [];
+        }
+
+        return (comercios || []).map(c => {
+          const uComercio = (usuarios || []).filter(u => u.comercio_id === c.id);
+          return {
+            ...c,
+            usuarios: uComercio,
+            usuariosCount: uComercio.length
+          };
+        });
+      } catch (error) {
+        console.error('Error en getComercios:', error);
+        return [];
+      }
+    },
+
+    addComercio: async (nombre, plan, fechaVencimiento) => {
+      try {
+        const nuevoComercio = {
+          nombre,
+          plan: plan || '1_mes',
+          estado_suscripcion: 'activo',
+          fecha_vencimiento: fechaVencimiento || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        };
+
+        const { data, error } = await supabase
+          .from('comercios')
+          .insert([nuevoComercio])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error agregando comercio:', error);
+          return { success: false, error: error.message };
+        }
+
+        return { success: true, comercio: data };
+      } catch (error) {
+        console.error('Error agregando comercio:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    updateSuscripcion: async (comercioId, estado, plan, fechaVencimiento) => {
+      try {
+        const updateData = {};
+        if (estado) updateData.estado_suscripcion = estado;
+        if (plan) updateData.plan = plan;
+        if (fechaVencimiento) updateData.fecha_vencimiento = fechaVencimiento;
+
+        const { data, error } = await supabase
+          .from('comercios')
+          .update(updateData)
+          .eq('id', comercioId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error actualizando suscripción:', error);
+          return { success: false, error: error.message };
+        }
+
+        return { success: true, comercio: data };
+      } catch (error) {
+        console.error('Error actualizando suscripción:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    crearUsuarioComercio: async (usuario, password, nombre, rol, comercioId) => {
+      try {
+        const nuevoUsuario = {
+          usuario,
+          password,
+          nombre,
+          rol: rol || 'admin',
+          comercio_id: comercioId
+        };
+
+        const { data, error } = await supabase
+          .from('usuarios')
+          .insert([nuevoUsuario])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creando usuario para comercio:', error);
+          return { success: false, error: error.message };
+        }
+
+        return { success: true, usuario: data };
+      } catch (error) {
+        console.error('Error creando usuario de comercio:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    crearComercioCompleto: async ({ nombreComercio, plan, adminNombre, adminUsuario, adminPassword }) => {
+      try {
+        let dias = 30;
+        if (plan === '6_meses') dias = 180;
+        else if (plan === '1_ano') dias = 365;
+        else if (plan === 'gratis') dias = 7;
+        
+        const fechaVencimiento = new Date(Date.now() + dias * 24 * 60 * 60 * 1000).toISOString();
+        
+        const resComercio = await window.electronAPI.addComercio(nombreComercio, plan, fechaVencimiento);
+        if (!resComercio.success) {
+          return { success: false, error: resComercio.error };
+        }
+        
+        const comercioId = resComercio.comercio.id;
+        
+        const resUsuario = await window.electronAPI.crearUsuarioComercio(adminUsuario, adminPassword, adminNombre, 'admin', comercioId);
+        if (!resUsuario.success) {
+          await supabase.from('comercios').delete().eq('id', comercioId);
+          return { success: false, error: 'Error al crear usuario administrador: ' + resUsuario.error };
+        }
+        
+        return { success: true, comercio: resComercio.comercio, usuario: resUsuario.usuario };
+      } catch (error) {
+        console.error('Error en crearComercioCompleto:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    renovarComercio: async (comercioId, dias) => {
+      try {
+        const { data, error } = await supabase.from('comercios').select('fecha_vencimiento').eq('id', comercioId).single();
+        if (error || !data) return { success: false, error: 'No se pudo obtener el comercio.' };
+        
+        let fechaActual = new Date(data.fecha_vencimiento);
+        if (fechaActual < new Date()) {
+          fechaActual = new Date();
+        }
+        
+        const nuevaFecha = new Date(fechaActual.getTime() + dias * 24 * 60 * 60 * 1000).toISOString();
+        return await window.electronAPI.updateSuscripcion(comercioId, 'activo', null, nuevaFecha);
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    },
+    
+    suspenderComercio: async (comercioId) => {
+      return await window.electronAPI.updateSuscripcion(comercioId, 'suspendido', null, null);
+    },
+    
+    activarComercio: async (comercioId) => {
+      return await window.electronAPI.updateSuscripcion(comercioId, 'activo', null, null);
+    },
+    
+    vencerComercio: async (comercioId) => {
+      const ayer = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      return await window.electronAPI.updateSuscripcion(comercioId, 'vencido', null, ayer);
     }
   };
 

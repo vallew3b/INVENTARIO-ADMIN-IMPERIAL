@@ -26,6 +26,18 @@
             </div>
             
             <div class="sidebar-menu-wrapper">
+                <div class="menu-group" id="superadmin-menu-group" style="display: none;">
+                    <span class="menu-group-title">ADMINISTRACIÓN SAAS</span>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a href="#" data-section="superadmin-panel">
+                                <span class="menu-icon">💼</span>
+                                <span class="menu-text">Clientes & Suscrip.</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="menu-group">
                     <span class="menu-group-title">INICIO</span>
                     <ul class="sidebar-menu">
@@ -526,6 +538,130 @@
                             </div>
                             <div id="productoMessage" class="message"></div>
                         </form>
+                    </div>
+                </section>
+
+                <!-- Sección de Super Administrador (SaaS Console) -->
+                <section id="superadmin-panel" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <span class="section-subtitle">MORA CONSOLE - CONTROL GLOBAL DE CLIENTES</span>
+                            <h2>💼 Clientes y Suscripciones SaaS</h2>
+                        </div>
+                    </div>
+
+                    <!-- Métricas de Clientes -->
+                    <div class="stats-grid-modern">
+                        <div class="stat-card-modern">
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">TOTAL COMERCIOS</span>
+                                <div class="stat-card-icon-wrapper bg-soft-blue">🏬</div>
+                            </div>
+                            <h3 id="statTotalComercios" class="stat-card-value">0</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-context">registrados en la plataforma</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-modern">
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">SUSCRIPCIONES ACTIVAS</span>
+                                <div class="stat-card-icon-wrapper bg-soft-green">✅</div>
+                            </div>
+                            <h3 id="statComerciosActivos" class="stat-card-value">0</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-context">acceso habilitado al inventario</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-modern">
+                            <div class="stat-card-header">
+                                <span class="stat-card-label">SUSCRIPCIONES VENCIDAS / SUSPENDIDAS</span>
+                                <div class="stat-card-icon-wrapper bg-soft-amber" style="background: #fef2f2; color: #ef4444;">🔒</div>
+                            </div>
+                            <h3 id="statComerciosBloqueados" class="stat-card-value" style="color: #ef4444;">0</h3>
+                            <div class="stat-card-footer">
+                                <span class="trend-context">acceso bloqueado por impago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="punto-venta-container" style="grid-template-columns: 1fr 2fr; gap: 25px; align-items: start;">
+                        <!-- Registrar Nuevo Comercio -->
+                        <div class="form-container">
+                            <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--text-primary); border-bottom: 1px solid var(--border-gray); padding-bottom: 10px;">🏬 Registrar Nuevo Cliente (Comercio)</h3>
+                            <form id="formNuevoComercio">
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label for="comercioNombre">Nombre del Comercio / Negocio *</label>
+                                    <input type="text" id="comercioNombre" placeholder="Ej: Refaccionaria Axel" required class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label for="comercioPlan">Plan Inicial *</label>
+                                    <select id="comercioPlan" class="search-input" style="width: 100%; padding: 10px; margin-top: 5px; height: 39px; background: var(--bg-slate-light); color: var(--text-primary); border: 1px solid var(--border-gray); border-radius: 8px;">
+                                        <option value="1_mes">1 Mes - Plan Mensual</option>
+                                        <option value="6_meses">6 Meses - Plan Semestral</option>
+                                        <option value="1_ano">1 Año - Plan Anual</option>
+                                        <option value="gratis">Prueba Gratis (7 Días)</option>
+                                    </select>
+                                </div>
+                                <h3 style="margin-top: 25px; margin-bottom: 15px; font-size: 16px; color: var(--text-primary); border-bottom: 1px solid var(--border-gray); padding-bottom: 5px;">👤 Cuenta de Administrador Principal</h3>
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <label for="adminNombre">Nombre Completo del Administrador *</label>
+                                    <input type="text" id="adminNombre" placeholder="Ej: Axel Mora" required class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <label for="adminUsuario">Nombre de Usuario (Login) *</label>
+                                    <input type="text" id="adminUsuario" placeholder="Ej: axel_admin" required class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label for="adminPassword">Contraseña Inicial *</label>
+                                    <input type="password" id="adminPassword" placeholder="••••••••" required class="search-input" style="width: 100%; padding: 10px; margin-top: 5px;">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; font-size: 14px; font-weight: 600; padding: 12px;">💾 Activar y Crear Inquilino</button>
+                                <div id="comercioMessage" class="message" style="margin-top: 15px;"></div>
+                            </form>
+                        </div>
+
+                        <!-- Lista de Comercios Registrados -->
+                        <div class="ventas-dia-container" style="margin-top: 0;">
+                            <h3 style="margin-bottom: 15px; font-size: 18px; color: var(--text-primary);">📋 Comercios Registrados en el Sistema</h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Negocio / Comercio</th>
+                                            <th>Plan</th>
+                                            <th>Fecha Vencimiento</th>
+                                            <th>Estado</th>
+                                            <th>Usuarios</th>
+                                            <th>Acciones Rápidas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comerciosTableBody">
+                                        <tr><td colspan="7" class="loading">Cargando comercios registrados...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pantalla de Bloqueo por Suscripción Expirada -->
+                <section id="locked-subscription" class="content-section">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; text-align: center; padding: 40px; background: rgba(254, 242, 242, 0.4); border: 2px dashed #f87171; border-radius: 16px; margin: 20px 0; box-shadow: var(--shadow-lg);">
+                        <div style="font-size: 80px; filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.25)); margin-bottom: 25px; animation: pulse 2s infinite;">🔒</div>
+                        <h1 style="color: #b91c1c; font-size: 32px; font-weight: 800; margin-bottom: 10px; font-family: var(--font-display);">ACCESO RESTRINGIDO</h1>
+                        <h2 style="color: #7f1d1d; font-size: 20px; font-weight: 700; margin-bottom: 20px;" id="lockedCommerceName">SUSCRIPCIÓN EXPIRADA</h2>
+                        
+                        <p style="color: #7f1d1d; font-size: 15px; line-height: 1.6; max-width: 600px; margin-bottom: 30px; font-weight: 500;">
+                            Lo sentimos, el periodo de vigencia de tu suscripción ha concluido o tu acceso ha sido suspendido temporalmente por falta de pago. Para reestablecer tu acceso al inventario y al punto de venta, por favor realiza tu pago y ponte en contacto con tu Administrador Mora.
+                        </p>
+                        
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                            <button onclick="window.location.reload()" class="btn btn-primary" style="background: #ef4444; color: #fff; padding: 12px 24px; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">🔄 Reintentar / Recargar</button>
+                            <button id="lockedLogoutBtn" class="btn btn-secondary" style="border: 1px solid #f87171; color: #b91c1c; padding: 12px 24px; font-weight: 700;">🚪 Cerrar Sesión</button>
+                        </div>
                     </div>
                 </section>
             </div>

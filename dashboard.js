@@ -4,6 +4,25 @@ if (!user) {
     window.location.href = 'index.html';
 }
 
+// NUEVA COMPROBACIÓN DE SUSCRIPCIÓN (MULTI-INQUILINO)
+let isSubscriptionActive = true;
+let isSuperadmin = user && user.rol === 'superadmin';
+
+if (user && !isSuperadmin) {
+    const comercio = user.comercio;
+    if (comercio) {
+        const fechaVenc = new Date(comercio.fecha_vencimiento);
+        const hoy = new Date();
+        
+        if (comercio.estado_suscripcion !== 'activo' || fechaVenc < hoy) {
+            isSubscriptionActive = false;
+        }
+    } else {
+        // Si no tiene comercio asignado y no es superadmin, bloquear por seguridad
+        isSubscriptionActive = false;
+    }
+}
+
 // Mostrar nombre de usuario y detalles dinámicos en cabecera y sidebar
 if (user) {
     const userNameEl = document.getElementById('userName');
@@ -14,7 +33,11 @@ if (user) {
     
     const userRoleSidebar = document.getElementById('userRoleSidebar');
     if (userRoleSidebar) {
-        userRoleSidebar.textContent = user.rol === 'vendedor' ? 'Vendedor' : 'Administrador';
+        if (isSuperadmin) {
+            userRoleSidebar.textContent = 'Superadministrador';
+        } else {
+            userRoleSidebar.textContent = user.rol === 'vendedor' ? 'Vendedor' : 'Administrador';
+        }
     }
     
     // Obtener iniciales (ej: "Juan Pérez" -> "JP", "Admin" -> "AD")
@@ -33,14 +56,108 @@ if (user) {
     if (userAvatarHeader) {
         userAvatarHeader.innerHTML = `<span>${initials}</span>`;
     }
+
+    // Logo dinámico de la marca
+    const brandTitleSidebar = document.querySelector('.brand-title-sidebar');
+    if (brandTitleSidebar) {
+        if (isSuperadmin) {
+            brandTitleSidebar.textContent = 'MORA CONSOLE';
+        } else if (user.comercio) {
+            brandTitleSidebar.textContent = user.comercio.nombre.toUpperCase();
+        }
+    }
+}
+
+// Función para validar suscripción bloqueada
+function validarBloqueoSuscripcion() {
+    if (!isSubscriptionActive) {
+        console.warn('¡Suscripción inactiva! Bloqueando aplicación...');
+        
+        // Mostrar el nombre del comercio bloqueado
+        const lockedCommerceName = document.getElementById('lockedCommerceName');
+        if (lockedCommerceName && user.comercio) {
+            lockedCommerceName.textContent = `COMERCIO: ${user.comercio.nombre.toUpperCase()}`;
+        }
+        
+        // Ocultar todo el menú lateral excepto el botón de cerrar sesión
+        document.querySelectorAll('.sidebar-menu-wrapper .menu-group').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Ocultar la barra superior de búsqueda/notificaciones
+        const topBarRight = document.querySelector('.top-bar-right');
+        if (topBarRight) {
+            topBarRight.style.display = 'none';
+        }
+        
+        // Mostrar sección de bloqueo y ocultar el resto
+        document.querySelectorAll('.content-section').forEach(sec => {
+            sec.classList.remove('active');
+            sec.style.display = 'none';
+        });
+        
+        const lockedSec = document.getElementById('locked-subscription');
+        if (lockedSec) {
+            lockedSec.classList.add('active');
+            lockedSec.style.display = 'block';
+        }
+        
+        // Configurar botón de logout en la pantalla de bloqueo
+        const lockedLogoutBtn = document.getElementById('lockedLogoutBtn');
+        if (lockedLogoutBtn) {
+            lockedLogoutBtn.addEventListener('click', () => {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+        
+        return true;
+    }
+    return false;
 }
 
 // Ocultar secciones según el rol del usuario
 function configurarPermisos() {
+    if (!isSubscriptionActive) return; // Si está bloqueado, no configurar otros permisos
+
     const rol = user.rol || 'admin';
     const esVendedor = rol === 'vendedor';
     
     console.log('Rol del usuario:', rol, 'Es vendedor:', esVendedor);
+
+    if (isSuperadmin) {
+        // Mostrar menú de superadmin
+        const saasMenu = document.getElementById('superadmin-menu-group');
+        if (saasMenu) {
+            saasMenu.style.display = 'block';
+        }
+        
+        // Ocultar otros grupos de menú
+        document.querySelectorAll('.sidebar-menu-wrapper .menu-group').forEach(group => {
+            if (group.id !== 'superadmin-menu-group') {
+                group.style.display = 'none';
+            }
+        });
+        
+        // Redirigir la carga inicial a la sección de superadmin-panel
+        document.querySelectorAll('.content-section').forEach(sec => {
+            sec.classList.remove('active');
+            sec.style.display = 'none';
+        });
+        
+        const superadminPanel = document.getElementById('superadmin-panel');
+        if (superadminPanel) {
+            superadminPanel.classList.add('active');
+            superadminPanel.style.display = 'block';
+        }
+        
+        const sectionTitle = document.getElementById('sectionTitle');
+        if (sectionTitle) sectionTitle.textContent = 'Clientes & Suscripciones';
+        
+        // Cargar datos del panel de superadmin
+        cargarPanelSuperadmin();
+        return;
+    }
     
     // Ocultar elementos del menú para vendedores
     if (esVendedor) {
@@ -119,11 +236,15 @@ function configurarPermisos() {
     }
 }
 
-// Configurar permisos al cargar
-configurarPermisos();
+// Validar suscripción y configurar permisos al cargar
+const isLocked = validarBloqueoSuscripcion();
+if (!isLocked) {
+    configurarPermisos();
+}
 
 // Mostrar mensaje de conexión exitosa al cargar
 window.addEventListener('DOMContentLoaded', () => {
+    if (isLocked) return;
     showToast('Conexión exitosa', 'Conectado correctamente a Supabase', 'success');
     
     // Toggle para menú móvil (Sidebar)
